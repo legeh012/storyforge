@@ -45,14 +45,14 @@ const Navigation = () => {
             ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/auth">
-              <Button variant="ghost" size="sm">Sign In</Button>
+            <Link to="/workflow">
+              <Button variant="ghost" size="sm">Workflow</Button>
             </Link>
-            <Link to="/auth">
+            <Link to="/create">
               <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity">
-                Get Started
+                Create Project
               </Button>
             </Link>
           </div>
@@ -88,12 +88,12 @@ const Navigation = () => {
                 ))}
                 
                 <div className="border-t border-border pt-4 mt-4 space-y-3">
-                  <Link to="/auth" onClick={() => setIsOpen(false)} className="block">
-                    <Button variant="outline" className="w-full">Sign In</Button>
+                  <Link to="/workflow" onClick={() => setIsOpen(false)} className="block">
+                    <Button variant="outline" className="w-full">Workflow</Button>
                   </Link>
-                  <Link to="/auth" onClick={() => setIsOpen(false)} className="block">
+                  <Link to="/create" onClick={() => setIsOpen(false)} className="block">
                     <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
-                      Get Started
+                      Create Project
                     </Button>
                   </Link>
                 </div>
