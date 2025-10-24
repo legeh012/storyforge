@@ -90,6 +90,33 @@ serve(async (req) => {
       }
       
       console.log('New episode created:', episodeId);
+      
+      // Apply remix transformations if specified
+      if (cast || music || overlay || remixable) {
+        console.log('Applying remix transformations...');
+        
+        const remixResponse = await fetch(`${supabaseUrl}/functions/v1/remix-engine`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseKey}`
+          },
+          body: JSON.stringify({
+            episode: episodeId,
+            cast,
+            music,
+            overlay,
+            remixable
+          })
+        });
+        
+        if (remixResponse.ok) {
+          const remixData = await remixResponse.json();
+          console.log('Remix applied:', remixData);
+        } else {
+          console.warn('Remix application failed, continuing with base video');
+        }
+      }
     }
 
     // Fetch episode details

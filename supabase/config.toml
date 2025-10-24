@@ -1,1 +1,4 @@
 project_id = "tmqmpqxixukhpblgdvgp"
+
+[functions.remix-engine]
+verify_jwt = false
