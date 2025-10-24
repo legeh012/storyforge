@@ -15,11 +15,82 @@ serve(async (req) => {
   try {
     console.log('=== Video Generation Started ===');
     
-    const { episodeId } = await req.json();
+    const requestBody = await req.json();
+    
+    // Support both old API (episodeId) and new API (episode, cast, music, overlay)
+    let episodeId = requestBody.episodeId;
+    const { episode: episodeName, cast, music, overlay, remixable } = requestBody;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // If no episodeId provided, create a new episode from the prompt
+    if (!episodeId && episodeName) {
+      console.log('Creating new episode from prompt:', episodeName);
+      
+      // Get authenticated user
+      const authHeader = req.headers.get('Authorization');
+      let userId: string | null = null;
+      
+      if (authHeader) {
+        const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+          global: { headers: { Authorization: authHeader } }
+        });
+        const { data: { user } } = await authClient.auth.getUser();
+        userId = user?.id || null;
+      }
+      
+      if (!userId) {
+        throw new Error('Authentication required for creating new episodes');
+      }
+      
+      // Create manifest entry
+      const manifestId = `ep_${Date.now()}`;
+      const manifest = {
+        id: manifestId,
+        source: `assets/videos/${manifestId}.mp4`,
+        linkedTo: remixable ? [`${manifestId}_remix`, `${manifestId}_overlay`] : [],
+        metadata: {
+          musicTrigger: music || undefined,
+          overlay: overlay || undefined,
+          remixable: remixable || false,
+          cast: cast || undefined,
+        },
+      };
+      
+      console.log('Created manifest:', manifest);
+      
+      // Generate episode using generate-episode-from-prompt
+      const generateResponse = await fetch(`${supabaseUrl}/functions/v1/generate-episode-from-prompt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseKey}`
+        },
+        body: JSON.stringify({
+          prompt: episodeName,
+          cast: cast,
+          musicTheme: music,
+          visualStyle: overlay,
+          userId: userId
+        })
+      });
+      
+      if (!generateResponse.ok) {
+        const errorText = await generateResponse.text();
+        throw new Error(`Failed to generate episode: ${errorText}`);
+      }
+      
+      const generateData = await generateResponse.json();
+      episodeId = generateData.episode?.id;
+      
+      if (!episodeId) {
+        throw new Error('Failed to create episode');
+      }
+      
+      console.log('New episode created:', episodeId);
+    }
 
     // Fetch episode details
     const { data: episode, error: episodeError } = await supabase

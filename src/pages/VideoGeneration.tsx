@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { VideoEditor } from '@/components/VideoEditor';
+import { VideoGenerationForm } from '@/components/VideoGenerationForm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -312,8 +313,12 @@ const VideoGeneration = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="editor" className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full max-w-2xl">
+        <Tabs defaultValue="generator" className="space-y-6">
+          <TabsList className="grid grid-cols-5 w-full max-w-3xl">
+            <TabsTrigger value="generator" className="gap-2">
+              <Zap className="h-4 w-4" />
+              Generator
+            </TabsTrigger>
             <TabsTrigger value="editor" className="gap-2">
               <Film className="h-4 w-4" />
               Editor
@@ -331,6 +336,10 @@ const VideoGeneration = () => {
               Export
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="generator" className="space-y-6">
+            <VideoGenerationForm />
+          </TabsContent>
 
           <TabsContent value="editor" className="space-y-6">
             {episodeId && scenes.length > 0 && (
