@@ -199,19 +199,69 @@ const ProductionStudio = () => {
       updateBotStatus('dialogue', 'completed', dialogueData);
       setProgress(75);
 
-      // Phase 4: Post-Production
-      setCurrentPhase('Phase 4: Post-Production & Assembly');
+      // Phase 4: Video Generation (Actual MP4 Production)
+      setCurrentPhase('Phase 4: Generating Actual Video with Frames');
       
       updateBotStatus('post_production', 'running');
-      const { data: postData, error: postError } = await supabase.functions.invoke('post-production-bot', {
+      
+      // Create episode record for video generation
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User must be logged in');
+
+      // First, get or create a project for this user
+      const { data: projects } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      let projectId = projects?.[0]?.id;
+      
+      if (!projectId) {
+        const { data: newProject } = await supabase
+          .from('projects')
+          .insert({
+            title: 'AI Productions',
+            user_id: user.id
+          })
+          .select('id')
+          .single();
+        projectId = newProject?.id;
+      }
+
+      const { data: episode, error: episodeError } = await supabase
+        .from('episodes')
+        .insert({
+          title: storyData?.title || 'AI Production',
+          synopsis: storyData?.synopsis || mainPrompt,
+          script: storyData?.script || '',
+          user_id: user.id,
+          project_id: projectId,
+          episode_number: 1,
+          status: 'processing'
+        })
+        .select()
+        .single();
+
+      if (episodeError) throw episodeError;
+
+      // Trigger actual video generation with ultra-video-bot
+      const { data: videoData, error: videoError } = await supabase.functions.invoke('ultra-video-bot', {
         body: { 
-          scenes: cinematicData?.scenes,
-          audio: audioData?.tracks,
-          dialogue: dialogueData?.voiceFiles
+          episodeId: episode.id,
+          enhancementLevel: 'ultra',
+          script: storyData?.script,
+          characters: charData?.characters,
+          cinematography: cinematicData?.scenes
         },
       });
-      if (postError) throw postError;
-      updateBotStatus('post_production', 'completed', postData);
+      
+      if (videoError) throw videoError;
+      
+      updateBotStatus('post_production', 'completed', { 
+        videoUrl: videoData?.videoUrl,
+        episodeId: episode.id 
+      });
       setProgress(90);
 
       // Phase 5: Marketing & Analytics
@@ -220,7 +270,7 @@ const ProductionStudio = () => {
       updateBotStatus('marketing_analytics', 'running');
       const { data: marketingData, error: marketingError } = await supabase.functions.invoke('marketing-analytics-bot', {
         body: { 
-          content: postData?.videoUrl,
+          content: videoData?.videoUrl || episode.video_url,
           metadata: { title: storyData?.title, description: storyData?.synopsis }
         },
       });
@@ -230,9 +280,13 @@ const ProductionStudio = () => {
 
       setCurrentPhase('Production Complete! 🎉');
       
+      const videoUrl = bots.find(b => b.id === 'post_production')?.result?.videoUrl;
+      
       toast({
         title: 'God-Tier Production Complete!',
-        description: 'All 7 AI departments have finished their work',
+        description: videoUrl 
+          ? 'Video is ready! Check the results below.' 
+          : 'All AI departments have finished their work',
       });
 
     } catch (error) {
@@ -401,42 +455,91 @@ const ProductionStudio = () => {
               ))}
             </div>
 
-            {/* Results Tabs */}
+            {/* Video Player & Results */}
             {bots.some(b => b.status === 'completed') && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Production Results</CardTitle>
-                  <CardDescription>View outputs from each department</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue={bots.find(b => b.status === 'completed')?.id}>
-                    <TabsList className="grid w-full grid-cols-7">
+              <>
+                {/* Video Player */}
+                {bots.find(b => b.id === 'post_production' && b.result?.videoUrl) && (
+                  <Card className="border-2 border-green-500/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Film className="h-6 w-6 text-green-500" />
+                        Final Video Production
+                      </CardTitle>
+                      <CardDescription>
+                        God-tier AI-generated video - ready to publish
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                        <video 
+                          controls 
+                          className="w-full h-full"
+                          src={bots.find(b => b.id === 'post_production')?.result?.videoUrl}
+                        >
+                          Your browser does not support video playback.
+                        </video>
+                      </div>
+                      <div className="mt-4 flex gap-3">
+                        <Button 
+                          className="flex-1 bg-gradient-to-r from-green-600 to-blue-600"
+                          onClick={() => {
+                            const videoUrl = bots.find(b => b.id === 'post_production')?.result?.videoUrl;
+                            if (videoUrl) window.open(videoUrl, '_blank');
+                          }}
+                        >
+                          Download Video
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            const episodeId = bots.find(b => b.id === 'post_production')?.result?.episodeId;
+                            if (episodeId) window.location.href = `/episodes/${episodeId}`;
+                          }}
+                        >
+                          View Episode Details
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Results Tabs */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Production Results</CardTitle>
+                    <CardDescription>Detailed outputs from each AI department</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue={bots.find(b => b.status === 'completed')?.id}>
+                      <TabsList className="grid w-full grid-cols-7">
+                        {bots.map(bot => (
+                          bot.status === 'completed' && (
+                            <TabsTrigger key={bot.id} value={bot.id} disabled={bot.status !== 'completed'}>
+                              <bot.icon className="h-4 w-4" />
+                            </TabsTrigger>
+                          )
+                        ))}
+                      </TabsList>
                       {bots.map(bot => (
                         bot.status === 'completed' && (
-                          <TabsTrigger key={bot.id} value={bot.id} disabled={bot.status !== 'completed'}>
-                            <bot.icon className="h-4 w-4" />
-                          </TabsTrigger>
+                          <TabsContent key={bot.id} value={bot.id} className="space-y-4">
+                            <div className="space-y-2">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <bot.icon className={`h-5 w-5 ${bot.color}`} />
+                                {bot.name} Results
+                              </h3>
+                              <pre className="bg-secondary p-4 rounded-lg overflow-auto max-h-96 text-xs">
+                                {JSON.stringify(bot.result, null, 2)}
+                              </pre>
+                            </div>
+                          </TabsContent>
                         )
                       ))}
-                    </TabsList>
-                    {bots.map(bot => (
-                      bot.status === 'completed' && (
-                        <TabsContent key={bot.id} value={bot.id} className="space-y-4">
-                          <div className="space-y-2">
-                            <h3 className="font-semibold flex items-center gap-2">
-                              <bot.icon className={`h-5 w-5 ${bot.color}`} />
-                              {bot.name} Results
-                            </h3>
-                            <pre className="bg-secondary p-4 rounded-lg overflow-auto max-h-96 text-xs">
-                              {JSON.stringify(bot.result, null, 2)}
-                            </pre>
-                          </div>
-                        </TabsContent>
-                      )
-                    ))}
-                  </Tabs>
-                </CardContent>
-              </Card>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+              </>
             )}
           </div>
         </main>
