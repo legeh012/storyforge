@@ -19,6 +19,8 @@ import ViralBots from "./pages/ViralBots";
 import Install from "./pages/Install";
 import VideoGeneration from "./pages/VideoGeneration";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,6 +44,8 @@ const App = () => (
       >
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/install" element={<Install />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/characters" element={<Characters />} />

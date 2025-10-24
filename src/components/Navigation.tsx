@@ -1,11 +1,32 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Sparkles, FolderOpen, TrendingUp, Activity, Bot, Menu, X, Video } from "lucide-react";
-import { useState } from "react";
+import { Sparkles, FolderOpen, TrendingUp, Activity, Bot, Menu, Video, UserCircle, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
 
   const navLinks = [
     { to: "/create", label: "Create", icon: null },
@@ -47,9 +68,26 @@ const Navigation = () => {
 
           {/* Desktop Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/workflow">
-              <Button variant="ghost" size="sm">Workflow</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/profile">
+                  <Button variant="ghost" size="sm">
+                    <UserCircle className="h-4 w-4 mr-2" />
+                    Profile
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity">
+                  Sign In
+                </Button>
+              </Link>
+            )}
             <Link to="/create">
               <Button size="sm" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity">
                 Create Project
@@ -88,9 +126,33 @@ const Navigation = () => {
                 ))}
                 
                 <div className="border-t border-border pt-4 mt-4 space-y-3">
-                  <Link to="/workflow" onClick={() => setIsOpen(false)} className="block">
-                    <Button variant="outline" className="w-full">Workflow</Button>
-                  </Link>
+                  {user ? (
+                    <>
+                      <Link to="/profile" onClick={() => setIsOpen(false)} className="block">
+                        <Button variant="outline" className="w-full">
+                          <UserCircle className="h-4 w-4 mr-2" />
+                          Profile
+                        </Button>
+                      </Link>
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={() => {
+                          setIsOpen(false);
+                          handleLogout();
+                        }}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <Link to="/auth" onClick={() => setIsOpen(false)} className="block">
+                      <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
+                        Sign In
+                      </Button>
+                    </Link>
+                  )}
                   <Link to="/create" onClick={() => setIsOpen(false)} className="block">
                     <Button className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
                       Create Project
