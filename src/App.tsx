@@ -21,6 +21,7 @@ import VideoGeneration from "./pages/VideoGeneration";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import ProductionStudio from "./pages/ProductionStudio";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,6 +59,7 @@ const App = () => (
           <Route path="/system-monitor" element={<SystemMonitor />} />
           <Route path="/viral-bots" element={<ViralBots />} />
           <Route path="/video-generation" element={<VideoGeneration />} />
+          <Route path="/production-studio" element={<ProductionStudio />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -2,3 +2,24 @@ project_id = "tmqmpqxixukhpblgdvgp"
 
 [functions.remix-engine]
 verify_jwt = false
+
+[functions.story-director-bot]
+verify_jwt = false
+
+[functions.character-movement-bot]
+verify_jwt = false
+
+[functions.soundtrack-bot]
+verify_jwt = false
+
+[functions.cinematography-bot]
+verify_jwt = false
+
+[functions.dialogue-bot]
+verify_jwt = false
+
+[functions.post-production-bot]
+verify_jwt = false
+
+[functions.marketing-analytics-bot]
+verify_jwt = false

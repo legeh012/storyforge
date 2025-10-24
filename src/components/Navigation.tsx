@@ -32,6 +32,7 @@ const Navigation = () => {
     { to: "/create", label: "Create", icon: null },
     { to: "/media", label: "Media", icon: FolderOpen },
     { to: "/video-generation", label: "Video Studio", icon: Video },
+    { to: "/production-studio", label: "🏆 Production Studio", icon: null },
     { to: "/analytics", label: "Analytics", icon: TrendingUp },
     { to: "/system-monitor", label: "Monitor", icon: Activity },
     { to: "/viral-bots", label: "Viral Bots", icon: Bot },
