@@ -129,6 +129,20 @@ Deno.serve(async (req) => {
 
     console.log('🎥 AI-enhanced video compilation completed successfully');
 
+    // Trigger quality validation
+    console.log('🔍 Triggering quality validation...');
+    try {
+      await supabase.functions.invoke('quality-validator', {
+        body: {
+          episodeId,
+          frameUrls,
+          metadata: enhancedVideoManifest.metadata
+        }
+      });
+    } catch (validationError) {
+      console.warn('Quality validation failed, but video compilation succeeded:', validationError);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
