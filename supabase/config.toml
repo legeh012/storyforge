@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.veo-video-bot]
 verify_jwt = true
+
+[functions.ai-copilot]
+verify_jwt = false

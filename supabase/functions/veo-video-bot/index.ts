@@ -121,11 +121,26 @@ Return ONLY valid JSON array of scenes with this structure:
       throw new Error('Failed to generate scenes');
     }
 
-    // Step 2: God-Tier Image Generation
+    // Step 2: God-Tier Image Generation with Progress Broadcasting
     console.log('🎥 Generating photorealistic frames...');
     const frameUrls: string[] = [];
     const frameDurations: number[] = [];
     const BATCH_SIZE = 3;
+
+    // Broadcast initial progress
+    await supabase.channel(`video-production-${episodeId}`).send({
+      type: 'broadcast',
+      event: 'progress',
+      payload: {
+        episodeId,
+        status: 'generating',
+        currentStep: 'Generating photorealistic frames...',
+        progress: 10,
+        totalScenes: scenes.length,
+        completedScenes: 0,
+        frames: []
+      }
+    });
 
     for (let i = 0; i < scenes.length; i += BATCH_SIZE) {
       const batch = scenes.slice(i, i + BATCH_SIZE);
@@ -190,14 +205,44 @@ TECHNICAL SPECIFICATIONS:
         return {
           url: frameUrl,
           duration: scene.duration || 5,
-          scene: scene
+          scene: scene,
+          sceneNumber: sceneIndex + 1
         };
       });
 
       const batchResults = await Promise.all(batchPromises);
+      const currentFrames: any[] = [];
+      
       batchResults.forEach(result => {
         frameUrls.push(result.url);
         frameDurations.push(result.duration);
+        currentFrames.push({
+          sceneNumber: result.sceneNumber,
+          url: result.url,
+          status: 'complete'
+        });
+      });
+
+      const completedScenes = i + batch.length;
+      const progressPercent = 10 + (completedScenes / scenes.length) * 60;
+
+      // Broadcast progress with frame previews
+      await supabase.channel(`video-production-${episodeId}`).send({
+        type: 'broadcast',
+        event: 'progress',
+        payload: {
+          episodeId,
+          status: 'generating',
+          currentStep: `Generated ${completedScenes}/${scenes.length} scenes`,
+          progress: progressPercent,
+          totalScenes: scenes.length,
+          completedScenes,
+          frames: frameUrls.map((url, idx) => ({
+            sceneNumber: idx + 1,
+            url,
+            status: 'complete'
+          }))
+        }
       });
 
       console.log(`✅ Batch ${Math.floor(i / BATCH_SIZE) + 1} complete`);
@@ -205,6 +250,24 @@ TECHNICAL SPECIFICATIONS:
 
     // Step 3: Trigger compilation
     console.log('🎬 Triggering god-tier video compilation...');
+    
+    await supabase.channel(`video-production-${episodeId}`).send({
+      type: 'broadcast',
+      event: 'progress',
+      payload: {
+        episodeId,
+        status: 'compiling',
+        currentStep: 'Compiling video with AI enhancements...',
+        progress: 75,
+        totalScenes: scenes.length,
+        completedScenes: scenes.length,
+        frames: frameUrls.map((url, idx) => ({
+          sceneNumber: idx + 1,
+          url,
+          status: 'complete'
+        }))
+      }
+    });
     
     const compilationResponse = await supabase.functions.invoke('compile-video', {
       body: {
@@ -224,6 +287,42 @@ TECHNICAL SPECIFICATIONS:
 
     if (compilationResponse.error) {
       console.error('Compilation error:', compilationResponse.error);
+      await supabase.channel(`video-production-${episodeId}`).send({
+        type: 'broadcast',
+        event: 'progress',
+        payload: {
+          episodeId,
+          status: 'error',
+          currentStep: 'Compilation failed',
+          progress: 75,
+          totalScenes: scenes.length,
+          completedScenes: scenes.length,
+          frames: frameUrls.map((url, idx) => ({
+            sceneNumber: idx + 1,
+            url,
+            status: 'complete'
+          })),
+          error: compilationResponse.error.message
+        }
+      });
+    } else {
+      await supabase.channel(`video-production-${episodeId}`).send({
+        type: 'broadcast',
+        event: 'progress',
+        payload: {
+          episodeId,
+          status: 'complete',
+          currentStep: 'Production complete!',
+          progress: 100,
+          totalScenes: scenes.length,
+          completedScenes: scenes.length,
+          frames: frameUrls.map((url, idx) => ({
+            sceneNumber: idx + 1,
+            url,
+            status: 'complete'
+          }))
+        }
+      });
     }
 
     return new Response(

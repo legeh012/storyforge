@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, Video, Film, Camera, Clapperboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { VideoProductionProgress } from "./VideoProductionProgress";
 
 interface GodTierProductionPanelProps {
   episodeId?: string;
@@ -14,6 +15,7 @@ interface GodTierProductionPanelProps {
 export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProps) => {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [activeEpisodeId, setActiveEpisodeId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const godTierBots = [
@@ -46,6 +48,8 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
     }
 
     setIsGenerating(true);
+    setActiveEpisodeId(episodeId);
+    
     try {
       toast({
         title: "🎬 God-Tier Production Started",
@@ -72,6 +76,7 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
         description: error.message,
         variant: "destructive"
       });
+      setActiveEpisodeId(null);
     } finally {
       setIsGenerating(false);
     }
@@ -79,6 +84,16 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
 
   return (
     <div className="space-y-6">
+      {activeEpisodeId && (
+        <VideoProductionProgress 
+          episodeId={activeEpisodeId} 
+          onComplete={() => {
+            setActiveEpisodeId(null);
+            setIsGenerating(false);
+          }}
+        />
+      )}
+      
       <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-primary/5">
         <CardHeader>
           <div className="flex items-center gap-2">
