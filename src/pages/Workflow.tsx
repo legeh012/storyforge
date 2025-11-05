@@ -21,6 +21,7 @@ import { ActiveBotsPanel } from "@/components/ActiveBotsPanel";
 import { ScalabilityInfo } from "@/components/ScalabilityInfo";
 import { PromptGenerator } from "@/components/PromptGenerator";
 import { ProductionDashboard } from "@/components/ProductionDashboard";
+import { GodTierProductionPanel } from "@/components/GodTierProductionPanel";
 import { sayWalahiCharacters } from "@/data/sayWalahiCharacters";
 
 interface Project {
@@ -744,10 +745,11 @@ const Workflow = () => {
           </div>
 
           <Tabs defaultValue="projects" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="projects">Projects</TabsTrigger>
               <TabsTrigger value="episodes">Episodes</TabsTrigger>
               <TabsTrigger value="cast">Cast</TabsTrigger>
+              <TabsTrigger value="god-tier">God-Tier AI</TabsTrigger>
               <TabsTrigger value="bots">Active Bots</TabsTrigger>
               <TabsTrigger value="automation">Automation</TabsTrigger>
             </TabsList>
@@ -1249,6 +1251,11 @@ const Workflow = () => {
                   </CardContent>
                 </Card>
               )}
+            </TabsContent>
+
+            {/* God-Tier AI Tab */}
+            <TabsContent value="god-tier" className="space-y-6">
+              <GodTierProductionPanel episodeId={episodes[0]?.id} />
             </TabsContent>
 
             {/* Active Bots Tab */}

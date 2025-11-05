@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.marketing-analytics-bot]
 verify_jwt = false
+
+[functions.veo-video-bot]
+verify_jwt = true
