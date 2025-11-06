@@ -4,6 +4,15 @@
 
 **URL**: https://lovable.dev/projects/20bfd2da-a425-458f-990b-26226e51ac14
 
+## Prerequisites
+
+Before running this application locally, ensure you have:
+
+- **Node.js** (v18 or higher) - [Download here](https://nodejs.org/)
+- **npm** (comes with Node.js)
+- **Git** - [Download here](https://git-scm.com/)
+- **Supabase CLI** (optional, for edge functions) - Install with: `npm install -g supabase`
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
@@ -14,11 +23,9 @@ Simply visit the [Lovable Project](https://lovable.dev/projects/20bfd2da-a425-45
 
 Changes made via Lovable will be committed automatically to this repo.
 
-**Use your preferred IDE**
+**Use Visual Studio Code (Recommended)**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+If you want to work locally using VS Code, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
 Follow these steps:
 
@@ -30,10 +37,31 @@ git clone <YOUR_GIT_URL>
 cd <YOUR_PROJECT_NAME>
 
 # Step 3: Install the necessary dependencies.
-npm i
+npm install
 
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
+```
+
+**VS Code Setup:**
+- Install recommended extensions (VS Code will prompt you on first open)
+- The app will run on `http://localhost:8080`
+- Environment variables are already configured in `.env`
+- Edge functions deploy automatically to Lovable Cloud
+
+**Working with Edge Functions Locally (Optional):**
+```sh
+# Install Supabase CLI globally
+npm install -g supabase
+
+# Link to your Supabase project
+supabase link --project-ref tmqmpqxixukhpblgdvgp
+
+# Start local Supabase (includes edge functions)
+supabase start
+
+# Test edge functions locally
+supabase functions serve
 ```
 
 **Edit a file directly in GitHub**
