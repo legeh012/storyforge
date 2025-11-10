@@ -31,6 +31,27 @@ Deno.serve(async (req) => {
 
     if (!prompt) throw new Error('Prompt is required');
 
+    // Check cache first
+    const cacheKey = `expert-director:${episodeId}:${prompt.substring(0, 100)}`;
+    const { data: cached } = await supabase
+      .from('ai_analysis_cache')
+      .select('analysis_result')
+      .eq('cache_key', cacheKey)
+      .gt('expires_at', new Date().toISOString())
+      .single();
+    
+    if (cached) {
+      console.log('✨ Using cached expert director analysis');
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          ...cached.analysis_result,
+          fromCache: true
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Use Lovable AI as virtual showrunner
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
@@ -136,6 +157,18 @@ Return as JSON:
       };
     }
 
+    const result = {
+      direction,
+      message: 'Cinematic direction provided by ExpertDirector'
+    };
+
+    // Cache the result for 24 hours
+    await supabase.from('ai_analysis_cache').upsert({
+      cache_key: cacheKey,
+      analysis_result: result,
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    });
+
     // Log execution stats if episodeId provided
     if (episodeId) {
       const executionTime = Date.now() - startTime;
@@ -144,15 +177,14 @@ Return as JSON:
         episode_id: episodeId,
         execution_time_ms: executionTime,
         quality_score: 0.85,
-        metadata: { directionQuality: 'high', adaptiveAdjustments: true }
+        metadata: { directionQuality: 'high', adaptiveAdjustments: true, fromCache: false }
       });
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        direction,
-        message: 'Cinematic direction provided by ExpertDirector'
+        ...result
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

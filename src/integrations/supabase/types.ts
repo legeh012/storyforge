@@ -120,6 +120,30 @@ export type Database = {
           },
         ]
       }
+      ai_analysis_cache: {
+        Row: {
+          analysis_result: Json
+          cache_key: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+        }
+        Insert: {
+          analysis_result: Json
+          cache_key: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+        }
+        Update: {
+          analysis_result?: Json
+          cache_key?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       bot_activities: {
         Row: {
           bot_id: string | null
@@ -426,9 +450,11 @@ export type Database = {
           created_at: string | null
           episode_number: number
           id: string
+          last_retry_at: string | null
           project_id: string
           realism_settings: Json | null
           rendering_style: string | null
+          retry_count: number | null
           script: string | null
           season: number | null
           status: string | null
@@ -448,9 +474,11 @@ export type Database = {
           created_at?: string | null
           episode_number: number
           id?: string
+          last_retry_at?: string | null
           project_id: string
           realism_settings?: Json | null
           rendering_style?: string | null
+          retry_count?: number | null
           script?: string | null
           season?: number | null
           status?: string | null
@@ -470,9 +498,11 @@ export type Database = {
           created_at?: string | null
           episode_number?: number
           id?: string
+          last_retry_at?: string | null
           project_id?: string
           realism_settings?: Json | null
           rendering_style?: string | null
+          retry_count?: number | null
           script?: string | null
           season?: number | null
           status?: string | null

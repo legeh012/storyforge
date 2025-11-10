@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     const { episodeId, frameUrls, metadata } = await req.json() as ValidationRequest;
 
     console.log(`🔍 Starting quality validation for episode ${episodeId}`);
+    const validationStartTime = Date.now();
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -205,7 +206,51 @@ Deno.serve(async (req) => {
     const totalChecks = metrics.length;
     const overallScore = Math.round((passedChecks / totalChecks) * 100);
 
-    // Store quality report
+    const validationTimeMs = Date.now() - validationStartTime;
+    
+    // Log performance metrics
+    await supabase.from('performance_metrics').insert({
+      episode_id: episodeId,
+      metric_type: 'quality_validation',
+      value: validationTimeMs,
+      metadata: { quality_score: overallScore, checks_passed: passedChecks, total_checks: totalChecks }
+    });
+
+    // Quality threshold gate - minimum score of 70
+    const QUALITY_THRESHOLD = 70;
+    if (overallScore < QUALITY_THRESHOLD) {
+      console.warn(`🚨 Quality score ${overallScore}% below threshold ${QUALITY_THRESHOLD}%`);
+      
+      const failedMetrics = metrics.filter(m => m.status === 'fail' || m.status === 'warning');
+      const issues = failedMetrics.map(m => m.message).join('; ');
+      
+      // Update episode with quality error
+      await supabase
+        .from('episodes')
+        .update({
+          video_status: 'failed',
+          video_render_error: `Quality score ${overallScore}/100 is below the minimum threshold of ${QUALITY_THRESHOLD}/100. Issues: ${issues}. Please regenerate the video with higher quality settings.`,
+          quality_score: overallScore,
+          quality_report: { metrics, timestamp: new Date().toISOString() }
+        })
+        .eq('id', episodeId);
+
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          belowThreshold: true,
+          threshold: QUALITY_THRESHOLD,
+          overallScore,
+          metrics,
+          passed: passedChecks,
+          total: totalChecks,
+          grade: 'F'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Store quality report for passing scores
     await supabase
       .from('episodes')
       .update({

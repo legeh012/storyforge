@@ -17,6 +17,8 @@ interface Episode {
   video_url: string | null;
   video_render_error: string | null;
   rendering_style: string;
+  retry_count?: number;
+  last_retry_at?: string;
   realism_settings: {
     anatomical_accuracy: boolean;
     realistic_lighting: boolean;
@@ -66,17 +68,20 @@ export const VideoRenderer = ({ episode, onStatusChange }: VideoRendererProps) =
     }
   };
 
-  const startRender = async () => {
+  const startRender = async (isRetry: boolean = false) => {
     setIsRendering(true);
     
     try {
       toast({
-        title: 'Starting video render',
-        description: 'Generating scenes and images...',
+        title: isRetry ? 'Retrying Video Generation' : 'Starting video render',
+        description: isRetry ? 'Attempting to regenerate with improved settings...' : 'Generating scenes and images...',
       });
 
       const { data, error } = await supabase.functions.invoke('render-episode-video', {
-        body: { episodeId: episode.id },
+        body: { 
+          episodeId: episode.id,
+          isRetry 
+        },
       });
 
       if (error) throw error;
@@ -292,15 +297,45 @@ export const VideoRenderer = ({ episode, onStatusChange }: VideoRendererProps) =
         )}
 
         {episode.video_render_error && (
-          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-            <p className="text-sm text-destructive">{episode.video_render_error}</p>
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm text-destructive font-medium mb-1">Video Generation Error</p>
+                <p className="text-sm text-destructive/90">{episode.video_render_error}</p>
+                {episode.retry_count !== undefined && episode.retry_count > 0 && (
+                  <p className="text-xs text-destructive/70 mt-1">
+                    Previous retry attempts: {episode.retry_count}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button 
+              onClick={() => startRender(true)} 
+              variant="outline" 
+              size="sm"
+              disabled={isRendering}
+              className="w-full border-destructive/30 hover:bg-destructive/10"
+            >
+              {isRendering ? (
+                <>
+                  <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <Play className="h-3 w-3 mr-2" />
+                  Retry Generation
+                </>
+              )}
+            </Button>
           </div>
         )}
 
         <div className="flex gap-2">
           {episode.video_status === 'not_started' && (
             <Button
-              onClick={startRender}
+              onClick={() => startRender(false)}
               disabled={isRendering}
               className="w-full bg-gradient-to-r from-accent to-primary"
             >
@@ -328,15 +363,24 @@ export const VideoRenderer = ({ episode, onStatusChange }: VideoRendererProps) =
             </Button>
           )}
 
-          {episode.video_status === 'failed' && (
+          {episode.video_status === 'failed' && !episode.video_render_error && (
             <Button
-              onClick={startRender}
+              onClick={() => startRender(true)}
               disabled={isRendering}
               variant="outline"
               className="w-full"
             >
-              <Play className="h-4 w-4 mr-2" />
-              Retry Render
+              {isRendering ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Retrying...
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4 mr-2" />
+                  Retry Generation
+                </>
+              )}
             </Button>
           )}
         </div>
