@@ -216,22 +216,58 @@ Deno.serve(async (req) => {
       metadata: { quality_score: overallScore, checks_passed: passedChecks, total_checks: totalChecks }
     });
 
+    // Generate specific recommendations based on failed metrics
+    const failedMetrics = metrics.filter(m => m.status === 'fail' || m.status === 'warning');
+    const recommendations: string[] = [];
+    
+    failedMetrics.forEach(metric => {
+      switch (metric.name) {
+        case 'Frame Count':
+          recommendations.push('Increase frame count by adding more scenes to the script');
+          recommendations.push('Break down existing scenes into smaller, more detailed segments');
+          break;
+        case 'Frame Consistency':
+          recommendations.push('Add more detailed character descriptions to maintain visual consistency');
+          recommendations.push('Include specific camera angles and shot compositions in prompts');
+          recommendations.push('Use consistent lighting and environment descriptions across scenes');
+          break;
+        case 'Photorealism Quality':
+          recommendations.push('Add "ultra photorealistic, Netflix-grade production quality" to prompts');
+          recommendations.push('Include technical details: "8K resolution, cinematic lighting, professional color grading"');
+          recommendations.push('Specify "no cartoon style, no animation, realistic human anatomy"');
+          recommendations.push('Add environmental context: "natural lighting, realistic shadows, depth of field"');
+          break;
+        case 'Pipeline Integrity':
+          recommendations.push('Ensure script includes detailed dialogue and scene descriptions');
+          recommendations.push('Add character development and cinematography notes');
+          recommendations.push('Include specific camera movements and transition instructions');
+          break;
+        case 'Metadata Completeness':
+          recommendations.push('Add more production metadata to the episode');
+          recommendations.push('Include style specifications and technical requirements');
+          break;
+      }
+    });
+
     // Quality threshold gate - minimum score of 70
     const QUALITY_THRESHOLD = 70;
     if (overallScore < QUALITY_THRESHOLD) {
       console.warn(`🚨 Quality score ${overallScore}% below threshold ${QUALITY_THRESHOLD}%`);
       
-      const failedMetrics = metrics.filter(m => m.status === 'fail' || m.status === 'warning');
       const issues = failedMetrics.map(m => m.message).join('; ');
       
-      // Update episode with quality error
+      // Update episode with quality error and recommendations
       await supabase
         .from('episodes')
         .update({
           video_status: 'failed',
-          video_render_error: `Quality score ${overallScore}/100 is below the minimum threshold of ${QUALITY_THRESHOLD}/100. Issues: ${issues}. Please regenerate the video with higher quality settings.`,
+          video_render_error: `Quality score ${overallScore}/100 is below the minimum threshold of ${QUALITY_THRESHOLD}/100. Issues: ${issues}`,
           quality_score: overallScore,
-          quality_report: { metrics, timestamp: new Date().toISOString() }
+          quality_report: { 
+            metrics, 
+            recommendations,
+            timestamp: new Date().toISOString() 
+          }
         })
         .eq('id', episodeId);
 
@@ -242,6 +278,7 @@ Deno.serve(async (req) => {
           threshold: QUALITY_THRESHOLD,
           overallScore,
           metrics,
+          recommendations,
           passed: passedChecks,
           total: totalChecks,
           grade: 'F'
