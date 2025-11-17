@@ -16,22 +16,120 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('No authorization header');
+    const { message, context, campaign_type, topic, episodeId, projectId, mode } = await req.json();
+    
+    // God-Tier mode can operate without auth for public access
+    let userId = null;
+    let isGodTier = mode === 'god_tier';
+    
+    if (!isGodTier) {
+      const authHeader = req.headers.get('Authorization');
+      if (!authHeader) throw new Error('No authorization header');
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
+      const { data: { user }, error: userError } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
 
-    if (userError || !user) throw new Error('Unauthorized');
+      if (userError || !user) throw new Error('Unauthorized');
+      userId = user.id;
+    }
 
-    const { campaign_type, topic, episodeId, projectId } = await req.json();
+    // GOD-TIER MODE: All capabilities available, no restrictions
+    if (isGodTier) {
+      console.log('⚡ GOD-TIER ORCHESTRATOR: All capabilities activated');
+      
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-    // Check user role for autonomous orchestration
-    const { data: userRole, error: roleError } = await supabase
+      // Use AI to analyze the message and determine appropriate actions
+      const analysisPrompt = `You are a God-Tier Orchestrator AI with all capabilities:
+- App Builder & Code Engineering
+- Video Production & Direction
+- Creative & Design
+- Audio & Music Production
+- Viral Marketing & Analytics
+- Script Generation
+- Quality Control
+- Performance Optimization
+
+User Message: "${message}"
+Context: ${JSON.stringify(context)}
+
+Analyze this request and provide:
+1. What specific capabilities are needed
+2. Recommended actions to take
+3. A helpful response to the user
+
+Return JSON:
+{
+  "capabilities": ["capability1", "capability2", ...],
+  "actions": ["action1", "action2", ...],
+  "response": "Your response to the user explaining what you'll do"
+}`;
+
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: 'You are a God-Tier Orchestrator combining all AI bot capabilities. Always respond with valid JSON.' },
+            { role: 'user', content: analysisPrompt }
+          ],
+          temperature: 0.7,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        if (aiResponse.status === 429) {
+          return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (aiResponse.status === 402) {
+          return new Response(JSON.stringify({ error: 'Payment required' }), {
+            status: 402,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        throw new Error('AI API error: ' + aiResponse.status);
+      }
+
+      const aiData = await aiResponse.json();
+      let analysis;
+      
+      try {
+        analysis = JSON.parse(aiData.choices[0].message.content);
+      } catch {
+        analysis = {
+          capabilities: ['App Builder', 'Video Director'],
+          actions: ['Analyze request', 'Provide guidance'],
+          response: aiData.choices[0].message.content
+        };
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          mode: 'god_tier',
+          activatedCapabilities: analysis.capabilities,
+          recommendedActions: analysis.actions,
+          response: analysis.response,
+          message: '⚡ God-Tier Orchestrator engaged - All capabilities available'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Standard mode with role checks
+    const { data: userRole } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .single();
 
     const isAdmin = userRole?.role === 'admin';
@@ -43,7 +141,7 @@ Deno.serve(async (req) => {
     const { data: bots, error: botsError } = await supabase
       .from('viral_bots')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .eq('is_active', true);
 
     if (botsError) throw botsError;
@@ -74,7 +172,7 @@ Deno.serve(async (req) => {
       // Log admin orchestration
       await supabase.from('bot_activities').insert({
         bot_id: null,
-        user_id: user.id,
+        user_id: userId,
         status: 'running',
         results: { 
           mode: 'god_tier_autonomous',
@@ -155,7 +253,7 @@ Deno.serve(async (req) => {
       // Log creator orchestration
       await supabase.from('bot_activities').insert({
         bot_id: null,
-        user_id: user.id,
+        user_id: userId,
         status: 'running',
         results: { 
           mode: 'creator_autonomous',
