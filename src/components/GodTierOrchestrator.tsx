@@ -95,13 +95,19 @@ export const GodTierOrchestrator = () => {
       });
 
       if (error) {
-        if (error.message?.includes('402')) {
-          throw new Error('Lovable AI credits depleted. Please add credits in Settings → Workspace → Usage.');
+        console.error('Bot orchestrator error:', error);
+        
+        // Check for specific error codes in the response
+        if (error.message?.includes('402') || error.context?.body?.error?.includes('credits')) {
+          throw new Error('💳 Lovable AI credits depleted. Please add credits in Settings → Workspace → Usage to continue.');
         }
         if (error.message?.includes('429')) {
-          throw new Error('Rate limit reached. Please wait a moment and try again.');
+          throw new Error('⏳ Rate limit reached. Please wait a moment and try again.');
         }
-        throw error;
+        
+        // Parse error message from response body if available
+        const errorMsg = error.context?.body?.error || error.message || 'An unexpected error occurred';
+        throw new Error(errorMsg);
       }
 
       const assistantMessage = data?.response || data?.message || 'Task initiated. All god-tier capabilities are engaged.';
@@ -114,7 +120,7 @@ export const GodTierOrchestrator = () => {
 
     } catch (error) {
       console.error('God-Tier Orchestrator error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.';
       
       toast({
         title: "Orchestrator Error",
@@ -124,7 +130,7 @@ export const GodTierOrchestrator = () => {
 
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `⚠️ ${errorMessage}`
+        content: `⚠️ Error: ${errorMessage}\n\nPlease check your Lovable AI credits in Settings → Workspace → Usage.`
       }]);
     } finally {
       setIsLoading(false);

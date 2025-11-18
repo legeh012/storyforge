@@ -85,18 +85,25 @@ Return JSON:
 
       if (!aiResponse.ok) {
         if (aiResponse.status === 429) {
-          return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+          return new Response(JSON.stringify({ 
+            error: 'Rate limit exceeded. Please wait a moment and try again.' 
+          }), {
             status: 429,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
         if (aiResponse.status === 402) {
-          return new Response(JSON.stringify({ error: 'Payment required' }), {
+          return new Response(JSON.stringify({ 
+            error: 'Lovable AI credits depleted. Please add credits in Settings → Workspace → Usage to continue.',
+            code: 'INSUFFICIENT_CREDITS'
+          }), {
             status: 402,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
-        throw new Error('AI API error: ' + aiResponse.status);
+        const errorText = await aiResponse.text();
+        console.error('AI API error:', aiResponse.status, errorText);
+        throw new Error(`AI API error: ${aiResponse.status}`);
       }
 
       const aiData = await aiResponse.json();
