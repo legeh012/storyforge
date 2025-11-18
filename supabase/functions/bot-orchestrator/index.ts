@@ -34,90 +34,65 @@ Deno.serve(async (req) => {
       userId = user.id;
     }
 
-    // GOD-TIER MODE: All capabilities available, no restrictions
+    // GOD-TIER MODE: All capabilities available, no restrictions (Personal App Mode - No Payment)
     if (isGodTier) {
-      console.log('⚡ GOD-TIER ORCHESTRATOR: All capabilities activated');
+      console.log('⚡ GOD-TIER ORCHESTRATOR: All capabilities activated (Personal Mode)');
       
-      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-      if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
-
-      // Use AI to analyze the message and determine appropriate actions
-      const analysisPrompt = `You are a God-Tier Orchestrator AI with all capabilities:
-- App Builder & Code Engineering
-- Video Production & Direction
-- Creative & Design
-- Audio & Music Production
-- Viral Marketing & Analytics
-- Script Generation
-- Quality Control
-- Performance Optimization
-
-User Message: "${message}"
-Context: ${JSON.stringify(context)}
-
-Analyze this request and provide:
-1. What specific capabilities are needed
-2. Recommended actions to take
-3. A helpful response to the user
-
-Return JSON:
-{
-  "capabilities": ["capability1", "capability2", ...],
-  "actions": ["action1", "action2", ...],
-  "response": "Your response to the user explaining what you'll do"
-}`;
-
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: 'You are a God-Tier Orchestrator combining all AI bot capabilities. Always respond with valid JSON.' },
-            { role: 'user', content: analysisPrompt }
-          ],
-          temperature: 0.7,
-        }),
-      });
-
-      if (!aiResponse.ok) {
-        if (aiResponse.status === 429) {
-          return new Response(JSON.stringify({ 
-            error: 'Rate limit exceeded. Please wait a moment and try again.' 
-          }), {
-            status: 429,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        if (aiResponse.status === 402) {
-          return new Response(JSON.stringify({ 
-            error: 'Lovable AI credits depleted. Please add credits in Settings → Workspace → Usage to continue.',
-            code: 'INSUFFICIENT_CREDITS'
-          }), {
-            status: 402,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          });
-        }
-        const errorText = await aiResponse.text();
-        console.error('AI API error:', aiResponse.status, errorText);
-        throw new Error(`AI API error: ${aiResponse.status}`);
-      }
-
-      const aiData = await aiResponse.json();
-      let analysis;
+      // Analyze message with keyword matching for capability routing
+      const messageLower = message.toLowerCase();
+      const capabilities: string[] = [];
+      const actions: string[] = [];
       
-      try {
-        analysis = JSON.parse(aiData.choices[0].message.content);
-      } catch {
-        analysis = {
-          capabilities: ['App Builder', 'Video Director'],
-          actions: ['Analyze request', 'Provide guidance'],
-          response: aiData.choices[0].message.content
-        };
+      // Determine capabilities based on keywords
+      if (messageLower.match(/video|episode|production|render|film/)) {
+        capabilities.push('Video Director', 'Production Team');
+        actions.push('Prepare video production pipeline', 'Generate storyboard');
       }
+      if (messageLower.match(/app|code|build|develop|feature/)) {
+        capabilities.push('App Builder', 'AI Engineer');
+        actions.push('Analyze requirements', 'Plan implementation');
+      }
+      if (messageLower.match(/audio|voice|sound|music|soundtrack/)) {
+        capabilities.push('Audio Master', 'Voice Synthesis');
+        actions.push('Prepare audio generation', 'Configure voice settings');
+      }
+      if (messageLower.match(/design|creative|ui|ux|style/)) {
+        capabilities.push('Creative Studio', 'Design System');
+        actions.push('Design analysis', 'Style recommendations');
+      }
+      if (messageLower.match(/viral|trend|marketing|analytics|optimize/)) {
+        capabilities.push('Viral Optimizer', 'Marketing Analytics');
+        actions.push('Trend analysis', 'Optimization strategy');
+      }
+      if (messageLower.match(/script|story|character|dialogue/)) {
+        capabilities.push('Script Generator', 'Story Director');
+        actions.push('Script development', 'Character planning');
+      }
+      
+      // Default capabilities if none matched
+      if (capabilities.length === 0) {
+        capabilities.push('App Builder', 'Video Director', 'Creative Studio');
+        actions.push('Analyze request', 'Provide guidance', 'Orchestrate workflow');
+      }
+      
+      // Generate contextual response
+      let response = `I've activated ${capabilities.join(', ')} for your request. `;
+      
+      if (episodeId) {
+        response += `Working on episode ${episodeId}. `;
+      }
+      if (projectId) {
+        response += `Project ${projectId} ready. `;
+      }
+      
+      response += `Here's what I'll do:\n\n${actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\n`;
+      response += `All god-tier capabilities are standing by. What would you like to focus on first?`;
+      
+      const analysis = {
+        capabilities,
+        actions,
+        response
+      };
 
       return new Response(
         JSON.stringify({
