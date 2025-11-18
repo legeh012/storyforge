@@ -6,6 +6,7 @@
     "denoland.vscode-deno",
     "supabase.supabase-vscode",
     "formulahendry.auto-rename-tag",
+    "davidanson.vscode-markdownlint",
     "dsznajder.es7-react-js-snippets"
   ]
 }
