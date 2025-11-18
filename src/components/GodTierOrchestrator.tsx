@@ -44,7 +44,10 @@ export const GodTierOrchestrator = () => {
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = async () => {
+  const sendMessage = async (e?: React.MouseEvent | React.KeyboardEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
@@ -110,7 +113,8 @@ export const GodTierOrchestrator = () => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      e.stopPropagation();
+      sendMessage(e);
     }
   };
 
@@ -217,7 +221,8 @@ export const GodTierOrchestrator = () => {
             disabled={isLoading}
           />
           <Button
-            onClick={sendMessage}
+            type="button"
+            onClick={(e) => sendMessage(e)}
             disabled={isLoading || !input.trim()}
             size="icon"
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-[60px] w-[60px]"
