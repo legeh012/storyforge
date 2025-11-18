@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, Sparkles, Zap, Code, Film, Palette, Music, TrendingUp } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Sparkles, Zap, Code, Film, Palette, Music, TrendingUp, Power } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { Switch } from '@/components/ui/switch';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -24,6 +25,7 @@ const GOD_TIER_CAPABILITIES = [
 
 export const GodTierOrchestrator = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isActive, setIsActive] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -44,11 +46,30 @@ export const GodTierOrchestrator = () => {
     scrollToBottom();
   }, [messages]);
 
+  const toggleActive = () => {
+    setIsActive(prev => !prev);
+    toast({
+      title: isActive ? "Orchestrator Deactivated" : "Orchestrator Activated",
+      description: isActive 
+        ? "Chat is now inactive. Toggle to reactivate." 
+        : "All god-tier capabilities are now online.",
+    });
+  };
+
   const sendMessage = async (e?: React.MouseEvent | React.KeyboardEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
     
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !isActive) {
+      if (!isActive) {
+        toast({
+          title: "Orchestrator Inactive",
+          description: "Please activate the orchestrator to send messages.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
 
     const userMessage = input.trim();
     setInput('');
@@ -122,12 +143,18 @@ export const GodTierOrchestrator = () => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700 z-50"
+        className={`fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-50 transition-all ${
+          isActive 
+            ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700' 
+            : 'bg-muted hover:bg-muted/80'
+        }`}
         size="icon"
       >
         <div className="relative">
-          <Zap className="h-6 w-6 text-white" />
-          <Sparkles className="h-3 w-3 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
+          <Zap className={`h-6 w-6 ${isActive ? 'text-white' : 'text-muted-foreground'}`} />
+          {isActive && (
+            <Sparkles className="h-3 w-3 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
+          )}
         </div>
       </Button>
     );
@@ -136,25 +163,45 @@ export const GodTierOrchestrator = () => {
   return (
     <Card className="fixed bottom-6 right-6 w-[450px] h-[600px] shadow-2xl z-50 flex flex-col border-2 border-gradient-to-r from-purple-500 via-pink-500 to-orange-500">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+      <div className={`p-4 rounded-t-lg flex items-center justify-between transition-colors ${
+        isActive 
+          ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 text-white' 
+          : 'bg-muted text-muted-foreground'
+      }`}>
         <div className="flex items-center gap-3">
           <div className="relative">
             <Zap className="h-6 w-6" />
-            <Sparkles className="h-3 w-3 absolute -top-1 -right-1 animate-pulse" />
+            {isActive && (
+              <Sparkles className="h-3 w-3 absolute -top-1 -right-1 animate-pulse" />
+            )}
           </div>
           <div>
             <h3 className="font-bold text-lg">God-Tier Orchestrator</h3>
-            <p className="text-xs text-white/80">All Capabilities • App Builder Mode</p>
+            <p className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>
+              {isActive ? 'All Capabilities • App Builder Mode' : 'Inactive'}
+            </p>
           </div>
         </div>
-        <Button
-          onClick={() => setIsOpen(false)}
-          variant="ghost"
-          size="icon"
-          className="text-white hover:bg-white/20"
-        >
-          <X className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mr-2">
+            <Switch
+              checked={isActive}
+              onCheckedChange={toggleActive}
+              className="data-[state=checked]:bg-white"
+            />
+            <Badge variant={isActive ? "secondary" : "outline"} className="text-xs">
+              {isActive ? 'Active' : 'Inactive'}
+            </Badge>
+          </div>
+          <Button
+            onClick={() => setIsOpen(false)}
+            variant="ghost"
+            size="icon"
+            className={isActive ? 'text-white hover:bg-white/20' : 'hover:bg-muted/80'}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {/* Capabilities Bar */}
@@ -216,16 +263,20 @@ export const GodTierOrchestrator = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Tell me what you want to build or create..."
+            placeholder={isActive ? "Tell me what you want to build or create..." : "Activate orchestrator to send messages..."}
             className="min-h-[60px] resize-none"
-            disabled={isLoading}
+            disabled={isLoading || !isActive}
           />
           <Button
             type="button"
             onClick={(e) => sendMessage(e)}
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input.trim() || !isActive}
             size="icon"
-            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 h-[60px] w-[60px]"
+            className={`h-[60px] w-[60px] ${
+              isActive 
+                ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
+                : 'bg-muted'
+            }`}
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
