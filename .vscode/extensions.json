@@ -7,6 +7,13 @@
     "supabase.supabase-vscode",
     "formulahendry.auto-rename-tag",
     "davidanson.vscode-markdownlint",
-    "dsznajder.es7-react-js-snippets"
+    "dsznajder.es7-react-js-snippets",
+    "anthropic.claude-code",
+    "koredeodeyemi.codeasistant",
+    "aaron-bond.better-comments",
+    "continue.continue",
+    "aibuddystudio.aibuddy",
+    "aquilalabs.superflex",
+    "github.copilot-chat"
   ]
 }
