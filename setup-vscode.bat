@@ -1,7 +1,7 @@
 @echo off
 REM StoryForge VS Code Setup Script for Windows
 
-echo 🚀 Setting up StoryForge for VS Code development...
+echo 🚀 Setting up Mayza AI Productivity System for VS Code development...
 
 REM Check Node.js installation
 where node >nul 2>nul

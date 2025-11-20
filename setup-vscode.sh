@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # StoryForge VS Code Setup Script
-echo "🚀 Setting up StoryForge for VS Code development..."
+echo "🚀 Setting up Mayza AI Productivity System for VS Code development..."
 
 # Check Node.js installation
 if ! command -v node &> /dev/null; then
