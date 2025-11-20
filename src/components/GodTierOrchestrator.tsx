@@ -363,6 +363,7 @@ export const GodTierOrchestrator = () => {
             : 'bg-muted hover:bg-muted/80'
         }`}
         size="icon"
+        aria-label="Open Mayza AI Assistant"
       >
         <div className="relative">
           <Zap className={`h-6 w-6 ${isActive ? 'text-white' : 'text-muted-foreground'}`} />
@@ -412,6 +413,7 @@ export const GodTierOrchestrator = () => {
             variant="ghost"
             size="icon"
             className={isActive ? 'text-white hover:bg-white/20' : 'hover:bg-muted/80'}
+            aria-label="Close Mayza Assistant"
           >
             <X className="h-5 w-5" />
           </Button>
@@ -534,6 +536,7 @@ export const GodTierOrchestrator = () => {
                       variant="destructive"
                       className="absolute -top-2 -right-2 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => removeFile(i)}
+                      aria-label={`Remove ${file.name}`}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -547,6 +550,7 @@ export const GodTierOrchestrator = () => {
                       variant="ghost"
                       className="absolute right-1 top-1 h-5 w-5"
                       onClick={() => removeFile(i)}
+                      aria-label={`Remove ${file.name}`}
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -575,6 +579,7 @@ export const GodTierOrchestrator = () => {
               onClick={() => fileInputRef.current?.click()}
               disabled={!isActive}
               className="h-[60px] w-[60px]"
+              aria-label="Attach files"
             >
               <Paperclip className="h-5 w-5" />
             </Button>
@@ -598,6 +603,7 @@ export const GodTierOrchestrator = () => {
                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
                 : 'bg-muted'
             }`}
+            aria-label="Send message"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
