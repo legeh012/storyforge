@@ -26,10 +26,11 @@ const GOD_TIER_CAPABILITIES = [
 export const GodTierOrchestrator = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "I'm your God-Tier Orchestrator - a fusion of all AI bot capabilities. I can build apps, direct videos, optimize for virality, engineer solutions, and orchestrate complete production workflows. What do you want to create?",
+      content: "I'm your God-Tier Orchestrator with GPT-5.1 capabilities. I track our entire conversation deeply, infer your intent even from incomplete instructions, and work toward your goals without asking redundant questions. I can build apps, direct videos, optimize for virality, engineer solutions, and orchestrate complete production workflows. What do you want to create?",
       capabilities: GOD_TIER_CAPABILITIES.map(c => c.label)
     }
   ]);
@@ -78,10 +79,13 @@ export const GodTierOrchestrator = () => {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
     try {
-      // Analyze intent and route to appropriate bot capabilities
+      // Prepare deep context for GPT-5.1-like processing
       const context = {
         currentPage: window.location.pathname,
-        conversationHistory: messages,
+        conversationHistory: messages.map(m => ({
+          role: m.role,
+          content: m.content
+        })),
         godTierMode: true
       };
 
@@ -90,7 +94,8 @@ export const GodTierOrchestrator = () => {
           message: userMessage,
           context,
           campaign_type: 'full_viral_campaign',
-          mode: 'god_tier'
+          mode: 'god_tier',
+          sessionId
         }
       });
 
@@ -184,7 +189,7 @@ export const GodTierOrchestrator = () => {
           <div>
             <h3 className="font-bold text-lg">God-Tier Orchestrator</h3>
             <p className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>
-              {isActive ? 'All Capabilities • App Builder Mode' : 'Inactive'}
+              {isActive ? 'GPT-5.1 Mode • Deep Context Tracking' : 'Inactive'}
             </p>
           </div>
         </div>
