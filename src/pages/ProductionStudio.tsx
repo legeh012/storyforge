@@ -171,7 +171,7 @@ const ProductionStudio = () => {
       const { data, error } = await supabase.functions.invoke('bot-orchestrator', {
         body: { 
           message: testPrompt,
-          mode: 'quick_test',
+          mode: 'god_tier',
           campaign_type: 'test_production',
           context: {
             productionType: 'video',
