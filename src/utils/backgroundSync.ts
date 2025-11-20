@@ -45,7 +45,7 @@ class BackgroundSyncManager {
 
   private setupOnlineListener() {
     window.addEventListener('online', () => {
-      console.log('Connection restored, processing queue...');
+      // Connection restored, processing queue
       this.processQueue();
     });
 
@@ -109,7 +109,7 @@ class BackgroundSyncManager {
           
           // Remove if max retries exceeded
           if (this.queue[taskIndex].retryCount >= task.maxRetries) {
-            console.error('Task exceeded max retries, removing:', task);
+            // Task exceeded max retries, removed from queue
             this.queue.splice(taskIndex, 1);
             window.dispatchEvent(new CustomEvent('sync-task-failed', { detail: task }));
           }

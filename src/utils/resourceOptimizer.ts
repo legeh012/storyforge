@@ -194,7 +194,7 @@ class ResourceOptimizer {
 
     if (changed) {
       this.notifyListeners();
-      console.log('Settings auto-adjusted:', this.currentSettings);
+      // Settings auto-adjusted for optimal performance
     }
   }
 
