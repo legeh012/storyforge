@@ -1,4 +1,4 @@
-# Local Development Setup for StoryForge
+# Local Development Setup for Mayza AI Productivity System
 
 ## Prerequisites
 
@@ -113,7 +113,7 @@ Each function has an `index.ts` entry point.
 ## Project Structure
 
 ```
-storyforge/
+mayza/
 ├── .vscode/              # VS Code configuration
 │   ├── extensions.json   # Recommended extensions
 │   ├── launch.json       # Debug configurations
