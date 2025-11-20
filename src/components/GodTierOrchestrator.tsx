@@ -66,11 +66,10 @@ export const GodTierOrchestrator = () => {
     });
   };
 
-  const handleFileUpload = (files: FileList | null) => {
+  const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
 
-    const newFiles: Array<{ name: string; type: string; url: string }> = [];
-    Array.from(files).forEach((file) => {
+    const uploadPromises = Array.from(files).map(async (file) => {
       // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast({
@@ -78,23 +77,74 @@ export const GodTierOrchestrator = () => {
           description: `${file.name} exceeds 10MB limit`,
           variant: "destructive",
         });
-        return;
+        return null;
       }
 
-      // Create object URL for preview
-      const url = URL.createObjectURL(file);
-      newFiles.push({
-        name: file.name,
-        type: file.type,
-        url,
-      });
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast({
+            title: "Authentication required",
+            description: "Please sign in to upload files",
+            variant: "destructive",
+          });
+          return null;
+        }
+
+        // Create unique file path
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('orchestrator-files')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) {
+          console.error('Upload error:', error);
+          toast({
+            title: "Upload failed",
+            description: `Failed to upload ${file.name}`,
+            variant: "destructive",
+          });
+          return null;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('orchestrator-files')
+          .getPublicUrl(data.path);
+
+        return {
+          name: file.name,
+          type: file.type,
+          url: publicUrl,
+        };
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Upload failed",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive",
+        });
+        return null;
+      }
     });
 
-    setUploadedFiles((prev) => [...prev, ...newFiles]);
-    toast({
-      title: "Files uploaded",
-      description: `${newFiles.length} file(s) ready to send`,
-    });
+    const results = await Promise.all(uploadPromises);
+    const successfulUploads = results.filter((r): r is { name: string; type: string; url: string } => r !== null);
+
+    if (successfulUploads.length > 0) {
+      setUploadedFiles((prev) => [...prev, ...successfulUploads]);
+      toast({
+        title: "Files uploaded",
+        description: `${successfulUploads.length} file(s) uploaded to storage`,
+      });
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -116,11 +166,32 @@ export const GodTierOrchestrator = () => {
     handleFileUpload(e.dataTransfer.files);
   };
 
-  const removeFile = (index: number) => {
-    setUploadedFiles((prev) => {
-      URL.revokeObjectURL(prev[index].url);
-      return prev.filter((_, i) => i !== index);
-    });
+  const removeFile = async (index: number) => {
+    const file = uploadedFiles[index];
+    
+    try {
+      // Extract file path from public URL
+      const url = new URL(file.url);
+      const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/orchestrator-files\/(.+)$/);
+      
+      if (pathMatch && pathMatch[1]) {
+        const filePath = pathMatch[1];
+        
+        // Delete from Supabase Storage
+        const { error } = await supabase.storage
+          .from('orchestrator-files')
+          .remove([filePath]);
+
+        if (error) {
+          console.error('Delete error:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Error removing file:', error);
+    }
+
+    // Remove from local state
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const sendMessage = async (e?: React.MouseEvent | React.KeyboardEvent) => {
@@ -154,8 +225,7 @@ export const GodTierOrchestrator = () => {
       
       setMessages(prev => [...prev, userMsg]);
       
-      // Clear uploaded files after sending
-      uploadedFiles.forEach(file => URL.revokeObjectURL(file.url));
+      // Clear uploaded files from state after sending (files remain in storage)
       setUploadedFiles([]);
 
       // Prepare deep context for GPT-5.1-like processing
