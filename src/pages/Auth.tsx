@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { signUpSchema, signInSchema, resetPasswordSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -39,22 +41,25 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !fullName || !username) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signUp({
+      // Validate input
+      const validated = signUpSchema.parse({
         email,
         password,
+        fullName,
+        username
+      });
+
+      setLoading(true);
+
+      const { error } = await supabase.auth.signUp({
+        email: validated.email,
+        password: validated.password,
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            full_name: fullName,
-            username: username,
+            full_name: validated.fullName,
+            username: validated.username,
           },
         },
       });
@@ -67,7 +72,11 @@ const Auth = () => {
       setFullName('');
       setUsername('');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign up');
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || 'Failed to sign up');
+      }
     } finally {
       setLoading(false);
     }
@@ -76,24 +85,29 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error('Please fill in all fields');
-      return;
-    }
-
-    setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Validate input
+      const validated = signInSchema.parse({
         email,
-        password,
+        password
+      });
+
+      setLoading(true);
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: validated.email,
+        password: validated.password,
       });
 
       if (error) throw error;
 
       toast.success('Logged in successfully!');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || 'Failed to sign in');
+      }
     } finally {
       setLoading(false);
     }
@@ -102,22 +116,15 @@ const Auth = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!resetEmail) {
-      toast.error('Please enter your email address');
-      return;
-    }
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(resetEmail)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-
-    setLoading(true);
-
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      // Validate input
+      const validated = resetPasswordSchema.parse({
+        email: resetEmail
+      });
+
+      setLoading(true);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(validated.email, {
         redirectTo: `${window.location.origin}/auth?reset=true`,
       });
 
@@ -127,7 +134,11 @@ const Auth = () => {
       setResetEmail('');
       setShowResetPassword(false);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send reset email');
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message || 'Failed to send reset email');
+      }
     } finally {
       setLoading(false);
     }
