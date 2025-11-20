@@ -5,9 +5,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { DepartmentCollaboration } from '@/components/DepartmentCollaboration';
+import { messageSchema } from '@/lib/validations';
+import { z } from 'zod';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -75,13 +77,16 @@ export const GodTierOrchestrator = () => {
       return;
     }
 
-    const userMessage = input.trim();
-    setInput('');
-    setIsLoading(true);
-
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
-
     try {
+      // Validate message
+      const validated = messageSchema.parse({ message: input.trim() });
+      const userMessage = validated.message;
+      
+      setInput('');
+      setIsLoading(true);
+
+      setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+
       // Prepare deep context for GPT-5.1-like processing
       const context = {
         currentPage: window.location.pathname,
@@ -162,7 +167,14 @@ export const GodTierOrchestrator = () => {
 
     } catch (error) {
       console.error('God-Tier Orchestrator error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.';
+      
+      let errorMessage = 'An unexpected error occurred. Please try again.';
+      
+      if (error instanceof z.ZodError) {
+        errorMessage = error.errors[0].message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       
       toast({
         title: "Orchestrator Error",
@@ -172,7 +184,7 @@ export const GodTierOrchestrator = () => {
 
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `⚠️ Error: ${errorMessage}\n\nPlease check your Lovable AI credits in Settings → Workspace → Usage.`
+        content: `⚠️ Error: ${errorMessage}`
       }]);
     } finally {
       setIsLoading(false);
