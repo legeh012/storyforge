@@ -749,7 +749,7 @@ const Workflow = () => {
               <TabsTrigger value="projects">Projects</TabsTrigger>
               <TabsTrigger value="episodes">Episodes</TabsTrigger>
               <TabsTrigger value="cast">Cast</TabsTrigger>
-              <TabsTrigger value="god-tier">God-Tier AI</TabsTrigger>
+              <TabsTrigger value="god-tier">Mayza AI</TabsTrigger>
               <TabsTrigger value="bots">Active Bots</TabsTrigger>
               <TabsTrigger value="automation">Automation</TabsTrigger>
             </TabsList>
@@ -1253,7 +1253,7 @@ const Workflow = () => {
               )}
             </TabsContent>
 
-            {/* God-Tier AI Tab */}
+            {/* Mayza AI Tab */}
             <TabsContent value="god-tier" className="space-y-6">
               <GodTierProductionPanel episodeId={episodes[0]?.id} />
             </TabsContent>

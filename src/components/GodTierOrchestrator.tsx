@@ -36,7 +36,7 @@ export const GodTierOrchestrator = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "I'm your God-Tier Orchestrator with GPT-5.1 capabilities. I track our entire conversation deeply, infer your intent even from incomplete instructions, and work toward your goals without asking redundant questions. I can build apps, direct videos, optimize for virality, engineer solutions, and orchestrate complete production workflows. What do you want to create?",
+      content: "I'm Mayza, your AI orchestrator with GPT-5.1 capabilities. I track our entire conversation deeply, infer your intent even from incomplete instructions, and work toward your goals without asking redundant questions. I can build apps, direct videos, optimize for virality, engineer solutions, and orchestrate complete production workflows. What do you want to create?",
       capabilities: GOD_TIER_CAPABILITIES.map(c => c.label)
     }
   ]);
@@ -62,7 +62,7 @@ export const GodTierOrchestrator = () => {
       title: isActive ? "Orchestrator Deactivated" : "Orchestrator Activated",
       description: isActive 
         ? "Chat is now inactive. Toggle to reactivate." 
-        : "All god-tier capabilities are now online.",
+        : "All Mayza capabilities are now online.",
     });
   };
 
@@ -303,7 +303,7 @@ export const GodTierOrchestrator = () => {
         }
       }
 
-      const assistantMessage = data?.response || data?.message || 'Task initiated. All god-tier capabilities are engaged.';
+      const assistantMessage = data?.response || data?.message || 'Task initiated. All Mayza capabilities are engaged.';
       
       setMessages(prev => [...prev, {
         role: 'assistant',
@@ -312,7 +312,7 @@ export const GodTierOrchestrator = () => {
       }]);
 
     } catch (error) {
-      console.error('God-Tier Orchestrator error:', error);
+      console.error('Mayza orchestrator error:', error);
       
       let errorMessage = 'An unexpected error occurred. Please try again.';
       
@@ -382,7 +382,7 @@ export const GodTierOrchestrator = () => {
             )}
           </div>
           <div>
-            <h3 className="font-bold text-lg">God-Tier Orchestrator</h3>
+            <h3 className="font-bold text-lg">Mayza</h3>
             <p className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>
               {isActive ? 'GPT-5.1 Mode • Deep Context Tracking' : 'Inactive'}
             </p>
@@ -498,7 +498,7 @@ export const GodTierOrchestrator = () => {
             <div className="bg-muted rounded-lg p-3 flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm text-muted-foreground">
-                Orchestrating god-tier capabilities...
+                Orchestrating Mayza capabilities...
               </span>
             </div>
           </div>
