@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_results: {
+        Row: {
+          created_at: string | null
+          episode_id: string | null
+          id: string
+          metadata: Json | null
+          share_token: string | null
+          shared: boolean | null
+          test_name: string
+          updated_at: string | null
+          user_id: string
+          variations: Json
+          winner_variation_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          episode_id?: string | null
+          id?: string
+          metadata?: Json | null
+          share_token?: string | null
+          shared?: boolean | null
+          test_name: string
+          updated_at?: string | null
+          user_id: string
+          variations: Json
+          winner_variation_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          episode_id?: string | null
+          id?: string
+          metadata?: Json | null
+          share_token?: string | null
+          shared?: boolean | null
+          test_name?: string
+          updated_at?: string | null
+          user_id?: string
+          variations?: Json
+          winner_variation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_results_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ab_tests: {
         Row: {
           activity_id: string | null
@@ -396,6 +446,62 @@ export type Database = {
             columns: ["activity_id"]
             isOneToOne: false
             referencedRelation: "bot_activities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edit_performance_history: {
+        Row: {
+          actual_engagement_rate: number | null
+          actual_retention_rate: number | null
+          actual_views: number | null
+          content_type: string | null
+          created_at: string | null
+          edit_style: string
+          episode_id: string | null
+          id: string
+          metadata: Json | null
+          performance_score: number | null
+          quality_score: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_engagement_rate?: number | null
+          actual_retention_rate?: number | null
+          actual_views?: number | null
+          content_type?: string | null
+          created_at?: string | null
+          edit_style: string
+          episode_id?: string | null
+          id?: string
+          metadata?: Json | null
+          performance_score?: number | null
+          quality_score?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_engagement_rate?: number | null
+          actual_retention_rate?: number | null
+          actual_views?: number | null
+          content_type?: string | null
+          created_at?: string | null
+          edit_style?: string
+          episode_id?: string | null
+          id?: string
+          metadata?: Json | null
+          performance_score?: number | null
+          quality_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edit_performance_history_episode_id_fkey"
+            columns: ["episode_id"]
+            isOneToOne: false
+            referencedRelation: "episodes"
             referencedColumns: ["id"]
           },
         ]
