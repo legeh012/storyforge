@@ -847,6 +847,39 @@ export type Database = {
           },
         ]
       }
+      orchestrator_conversations: {
+        Row: {
+          active_topics: string[] | null
+          context_summary: string | null
+          conversation_data: Json
+          created_at: string | null
+          id: string
+          session_id: string
+          updated_at: string | null
+          user_goals: string[] | null
+        }
+        Insert: {
+          active_topics?: string[] | null
+          context_summary?: string | null
+          conversation_data?: Json
+          created_at?: string | null
+          id?: string
+          session_id: string
+          updated_at?: string | null
+          user_goals?: string[] | null
+        }
+        Update: {
+          active_topics?: string[] | null
+          context_summary?: string | null
+          conversation_data?: Json
+          created_at?: string | null
+          id?: string
+          session_id?: string
+          updated_at?: string | null
+          user_goals?: string[] | null
+        }
+        Relationships: []
+      }
       performance_metrics: {
         Row: {
           activity_id: string | null

@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { message, context, campaign_type, topic, episodeId, projectId, mode } = await req.json();
+    const { message, context, campaign_type, topic, episodeId, projectId, mode, sessionId } = await req.json();
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     // God-Tier mode can operate without auth for public access
     let userId = null;
@@ -34,74 +35,183 @@ Deno.serve(async (req) => {
       userId = user.id;
     }
 
-    // GOD-TIER MODE: All capabilities available, no restrictions (Personal App Mode - No Payment)
+    // GOD-TIER MODE: GPT-5.1-like conversational AI with deep context tracking
     if (isGodTier) {
-      console.log('⚡ GOD-TIER ORCHESTRATOR: All capabilities activated (Personal Mode)');
+      console.log('⚡ GOD-TIER ORCHESTRATOR: GPT-5.1 Mode - Deep Context Tracking Activated');
       
-      // Analyze message with keyword matching for capability routing
-      const messageLower = message.toLowerCase();
-      const capabilities: string[] = [];
-      const actions: string[] = [];
+      if (!LOVABLE_API_KEY) {
+        throw new Error('Lovable AI API key not configured');
+      }
+
+      // Retrieve or create conversation session
+      const actualSessionId = sessionId || crypto.randomUUID();
       
-      // Determine capabilities based on keywords
-      if (messageLower.match(/video|episode|production|render|film/)) {
-        capabilities.push('Video Director', 'Production Team');
-        actions.push('Prepare video production pipeline', 'Generate storyboard');
+      // Load conversation history
+      let conversationRecord = null;
+      const { data: existingConversation } = await supabase
+        .from('orchestrator_conversations')
+        .select('*')
+        .eq('session_id', actualSessionId)
+        .single();
+      
+      conversationRecord = existingConversation;
+      
+      const conversationHistory = conversationRecord?.conversation_data || [];
+      const userGoals = conversationRecord?.user_goals || [];
+      const activeTopics = conversationRecord?.active_topics || [];
+      
+      // Build GPT-5.1-like system prompt with deep context awareness
+      const systemPrompt = `You are a God-Tier AI Orchestrator with GPT-5.1 capabilities. You embody the following principles:
+
+CORE BEHAVIOR:
+• Track context deeply across the entire conversation - remember ALL previous messages
+• Do NOT ask redundant questions that were already answered
+• Do NOT repeat information unless necessary or requested
+• Infer meaning even when instructions are messy or incomplete
+• Avoid asking clarifying questions unless absolutely essential
+• Store and use details provided earlier in the session
+• Summarize and compress user instructions internally
+• Produce structured, multi-step reasoning
+• Maintain consistent logic across long tasks
+• Detect user intent and respond directly to it
+• Handle quick topic shifts gracefully without confusion
+• Avoid hallucinating - rely on given data or say "I don't have enough information"
+• Identify goals and work toward them without needing re-explanation
+
+YOUR CAPABILITIES:
+• App Builder & AI Engineer: Build features, debug code, architect solutions
+• Video Director & Production Team: Create episodes, storyboards, scripts
+• Audio Master & Voice Synthesis: Generate voices, music, sound effects
+• Creative Studio & Design System: Design UI/UX, brand identity, visuals
+• Viral Optimizer & Marketing Analytics: Trend analysis, growth hacking
+• Script Generator & Story Director: Write compelling narratives, characters
+
+CONVERSATION CONTEXT:
+${conversationHistory.length > 0 ? `Previous conversation: ${JSON.stringify(conversationHistory.slice(-10))}` : 'This is the start of a new conversation.'}
+${userGoals.length > 0 ? `User's stated goals: ${userGoals.join(', ')}` : ''}
+${activeTopics.length > 0 ? `Active topics: ${activeTopics.join(', ')}` : ''}
+
+CURRENT CONTEXT:
+${episodeId ? `Currently working on episode: ${episodeId}` : ''}
+${projectId ? `Current project: ${projectId}` : ''}
+${context?.currentPage ? `User is on page: ${context.currentPage}` : ''}
+
+INSTRUCTIONS:
+1. Understand the user's intent from their message
+2. Reason across all earlier messages in this conversation
+3. Generate actions, solutions, or outputs without redundancy
+4. Be direct, helpful, and avoid unnecessary back-and-forth
+5. Remember everything the user has told you
+6. Infer what they need even if they don't spell it out perfectly
+7. Work toward their goals autonomously`;
+
+      // Prepare messages for AI
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory.map((msg: any) => ({
+          role: msg.role,
+          content: msg.content
+        })),
+        { role: 'user', content: message }
+      ];
+
+      console.log('🧠 Invoking Lovable AI with deep context...');
+      
+      // Call Lovable AI
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages,
+          temperature: 0.8,
+          max_tokens: 2000,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('Lovable AI error:', aiResponse.status, errorText);
+        
+        if (aiResponse.status === 429) {
+          throw new Error('⏳ Rate limit reached. Please wait a moment and try again.');
+        }
+        if (aiResponse.status === 402) {
+          throw new Error('💳 Lovable AI credits depleted. Please add credits in Settings → Workspace → Usage.');
+        }
+        throw new Error(`AI API error: ${errorText}`);
       }
-      if (messageLower.match(/app|code|build|develop|feature/)) {
-        capabilities.push('App Builder', 'AI Engineer');
-        actions.push('Analyze requirements', 'Plan implementation');
-      }
-      if (messageLower.match(/audio|voice|sound|music|soundtrack/)) {
-        capabilities.push('Audio Master', 'Voice Synthesis');
-        actions.push('Prepare audio generation', 'Configure voice settings');
-      }
-      if (messageLower.match(/design|creative|ui|ux|style/)) {
-        capabilities.push('Creative Studio', 'Design System');
-        actions.push('Design analysis', 'Style recommendations');
-      }
-      if (messageLower.match(/viral|trend|marketing|analytics|optimize/)) {
-        capabilities.push('Viral Optimizer', 'Marketing Analytics');
-        actions.push('Trend analysis', 'Optimization strategy');
-      }
-      if (messageLower.match(/script|story|character|dialogue/)) {
-        capabilities.push('Script Generator', 'Story Director');
-        actions.push('Script development', 'Character planning');
+
+      const aiData = await aiResponse.json();
+      const aiMessage = aiData.choices?.[0]?.message?.content || 'I understand. How can I help you further?';
+
+      // Extract user goals and topics from the conversation
+      const newGoals = [...userGoals];
+      const newTopics = [...activeTopics];
+      
+      // Simple goal detection
+      if (message.toLowerCase().includes('want to') || message.toLowerCase().includes('need to') || message.toLowerCase().includes('goal')) {
+        const goalMatch = message.match(/(?:want to|need to|goal.*?is to)\s+(.+?)(?:\.|$)/i);
+        if (goalMatch && !newGoals.includes(goalMatch[1])) {
+          newGoals.push(goalMatch[1].trim());
+        }
       }
       
-      // Default capabilities if none matched
-      if (capabilities.length === 0) {
-        capabilities.push('App Builder', 'Video Director', 'Creative Studio');
-        actions.push('Analyze request', 'Provide guidance', 'Orchestrate workflow');
+      // Topic extraction from keywords
+      const topicKeywords = ['video', 'app', 'audio', 'design', 'script', 'episode', 'project'];
+      for (const keyword of topicKeywords) {
+        if (message.toLowerCase().includes(keyword) && !newTopics.includes(keyword)) {
+          newTopics.push(keyword);
+        }
       }
-      
-      // Generate contextual response
-      let response = `I've activated ${capabilities.join(', ')} for your request. `;
-      
-      if (episodeId) {
-        response += `Working on episode ${episodeId}. `;
+
+      // Update conversation history
+      const updatedHistory = [
+        ...conversationHistory,
+        { role: 'user', content: message, timestamp: new Date().toISOString() },
+        { role: 'assistant', content: aiMessage, timestamp: new Date().toISOString() }
+      ];
+
+      // Compress conversation if it gets too long (keep last 50 messages)
+      const compressedHistory = updatedHistory.slice(-50);
+
+      // Save conversation state
+      if (conversationRecord) {
+        await supabase
+          .from('orchestrator_conversations')
+          .update({
+            conversation_data: compressedHistory,
+            user_goals: newGoals.slice(-10),
+            active_topics: newTopics.slice(-10),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('session_id', actualSessionId);
+      } else {
+        await supabase
+          .from('orchestrator_conversations')
+          .insert({
+            session_id: actualSessionId,
+            conversation_data: compressedHistory,
+            user_goals: newGoals,
+            active_topics: newTopics,
+          });
       }
-      if (projectId) {
-        response += `Project ${projectId} ready. `;
-      }
-      
-      response += `Here's what I'll do:\n\n${actions.map((a, i) => `${i + 1}. ${a}`).join('\n')}\n\n`;
-      response += `All god-tier capabilities are standing by. What would you like to focus on first?`;
-      
-      const analysis = {
-        capabilities,
-        actions,
-        response
-      };
+
+      console.log('✅ Response generated with full context awareness');
 
       return new Response(
         JSON.stringify({
           success: true,
-          mode: 'god_tier',
-          activatedCapabilities: analysis.capabilities,
-          recommendedActions: analysis.actions,
-          response: analysis.response,
-          message: '⚡ God-Tier Orchestrator engaged - All capabilities available'
+          mode: 'god_tier_gpt5',
+          response: aiMessage,
+          sessionId: actualSessionId,
+          conversationLength: compressedHistory.length,
+          trackedGoals: newGoals,
+          activeTopics: newTopics,
+          message: '⚡ God-Tier GPT-5.1 Orchestrator - Deep Context Active'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
