@@ -99,6 +99,7 @@ npm run lint             # Run ESLint
 - **Automation Engine** - macOS system integration and file operations
 - **Task Planner** - Cross-domain task management (work, school, life)
 - **Video Production** - Full AI-powered video creation pipeline
+- **Bot Creator** - Design and deploy custom AI bots with unique capabilities
 - **Context-Aware AI** - Deep conversation tracking with GPT-5.1 capabilities
 - **Local Deployment** - Fully functional offline with local AI processing
 
@@ -110,6 +111,7 @@ All edge functions are in `supabase/functions/`:
 - `automation-api/` - System automation and file operations
 - `voice-automation/` - Voice command processing
 - `bot-orchestrator/` - Main AI orchestrator
+- `bot-creator/` - Custom bot design and creation
 - `godlike-voice-bot/` - Voice synthesis
 - `veo-video-bot/` - Video generation
 - And more...

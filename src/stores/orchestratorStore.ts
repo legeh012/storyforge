@@ -48,8 +48,8 @@ export const useOrchestratorStore = create<OrchestratorState>()(
     messages: [
       {
         role: 'assistant',
-        content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
-        capabilities: ['App Builder', 'Video Director', 'Creative Studio', 'Audio Master', 'Viral Optimizer', 'AI Engineer', 'Task Automator', 'Digital Assistant']
+        content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, bot creation, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
+        capabilities: ['App Builder', 'Video Director', 'Creative Studio', 'Audio Master', 'Viral Optimizer', 'AI Engineer', 'Task Automator', 'Digital Assistant', 'Bot Creator']
       }
     ],
     activeDepartments: [],
@@ -99,8 +99,8 @@ export const useOrchestratorStore = create<OrchestratorState>()(
       state.messages = [
         {
           role: 'assistant',
-          content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
-          capabilities: ['App Builder', 'Video Director', 'Creative Studio', 'Audio Master', 'Viral Optimizer', 'AI Engineer', 'Task Automator', 'Digital Assistant']
+          content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, bot creation, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
+          capabilities: ['App Builder', 'Video Director', 'Creative Studio', 'Audio Master', 'Viral Optimizer', 'AI Engineer', 'Task Automator', 'Digital Assistant', 'Bot Creator']
         }
       ];
       state.activeDepartments = [];
