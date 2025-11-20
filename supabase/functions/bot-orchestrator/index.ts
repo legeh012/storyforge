@@ -5,9 +5,107 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Local intelligence engine - generates responses without external AI APIs
-function generateIntelligentResponse({ message, conversationHistory, userGoals, activeTopics, context }: any): string {
+// Department detection and routing
+type Department = 'story' | 'character' | 'soundtrack' | 'cinematography' | 'dialogue' | 'post_production' | 'marketing' | null;
+
+function detectDepartment(message: string): Department {
   const lowerMessage = message.toLowerCase();
+  
+  // Story/Script department
+  if (/(script|story|plot|narrative|episode|scene|act|dialogue|character arc|storyline|write)/i.test(lowerMessage)) {
+    return 'story';
+  }
+  
+  // Character & Movement department
+  if (/(character|movement|motion|animation|gesture|expression|walk|run|pose|design character)/i.test(lowerMessage)) {
+    return 'character';
+  }
+  
+  // Soundtrack department
+  if (/(music|soundtrack|audio|sound|song|beat|melody|rhythm|compose)/i.test(lowerMessage)) {
+    return 'soundtrack';
+  }
+  
+  // Cinematography department
+  if (/(camera|shot|angle|lighting|frame|composition|transition|zoom|pan|cinematic)/i.test(lowerMessage)) {
+    return 'cinematography';
+  }
+  
+  // Dialogue/Voice department
+  if (/(voice|voiceover|tts|speak|say|narrat|vocal|accent)/i.test(lowerMessage)) {
+    return 'dialogue';
+  }
+  
+  // Post-Production department
+  if (/(edit|effect|color|grade|render|export|compile|finish|polish|vfx)/i.test(lowerMessage)) {
+    return 'post_production';
+  }
+  
+  // Marketing & Analytics department
+  if (/(viral|trend|market|analytics|engagement|views|seo|share|promote|optimize)/i.test(lowerMessage)) {
+    return 'marketing';
+  }
+  
+  return null;
+}
+
+function getDepartmentResponse(department: Department, message: string): string {
+  const responses: Record<Exclude<Department, null>, string[]> = {
+    story: [
+      "Alright, let's work on the story. What's the vibe you're going for?",
+      "Cool, script time. What should happen?",
+      "Story mode activated. Give me the premise.",
+      "I'm ready to write. What's the plot?"
+    ],
+    character: [
+      "Character design - got it. Describe who you need.",
+      "Let's build this character. What do they look like?",
+      "Character department here. What's their deal?",
+      "Cool, I'll design them. Give me details."
+    ],
+    soundtrack: [
+      "Audio time. What kind of vibe?",
+      "Music department ready. What sound are we going for?",
+      "Let's talk sound. What genre?",
+      "I'll handle the audio. Describe the mood."
+    ],
+    cinematography: [
+      "Camera work - nice. What shots do you want?",
+      "Cinematography mode. How should this look?",
+      "Let's frame this. What's the visual style?",
+      "Visual department ready. Describe the shots."
+    ],
+    dialogue: [
+      "Voice work, got it. Who's speaking?",
+      "Dialogue time. What should they say?",
+      "Voice department here. Give me the lines.",
+      "I'll handle the voices. What's the script?"
+    ],
+    post_production: [
+      "Editing mode. What needs polish?",
+      "Post-production ready. What effects?",
+      "Let's finish this up. What changes?",
+      "I'll handle the editing. What adjustments?"
+    ],
+    marketing: [
+      "Marketing mode. What platform?",
+      "Let's make it viral. What's the angle?",
+      "Analytics time. What's the goal?",
+      "I'll optimize this. Target audience?"
+    ]
+  };
+  
+  if (!department) return "";
+  const options = responses[department];
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+// Local intelligence engine - generates responses without external AI APIs
+function generateIntelligentResponse({ message, conversationHistory, userGoals, activeTopics, context, activeDepartment }: any): { response: string, department: Department } {
+  const lowerMessage = message.toLowerCase();
+  
+  // Detect which department should handle this
+  const detectedDepartment = detectDepartment(message);
   
   // Detect intent patterns
   const isGreeting = /^(hi|hello|hey|greetings)/i.test(message);
@@ -27,55 +125,69 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
       "Hey, how can I help?",
       "Hi! What do you need?"
     ];
-    return greetings[Math.floor(Math.random() * greetings.length)];
+    return { response: greetings[Math.floor(Math.random() * greetings.length)], department: null };
+  }
+  
+  // If department detected, route to that department
+  if (detectedDepartment) {
+    const deptResponse = getDepartmentResponse(detectedDepartment, message);
+    return { response: deptResponse, department: detectedDepartment };
   }
   
   if (isRequest) {
     // Video production requests
     if (lowerMessage.includes('video') || lowerMessage.includes('episode')) {
-      return "I'll orchestrate a complete video production for you. I'll handle:\n\n1. **Script & Storyboard**: Crafting compelling narrative and scene breakdown\n2. **Character Design**: Creating realistic characters with proper movement\n3. **Cinematography**: Professional camera work, lighting, and transitions\n4. **Audio Production**: Dialogue, soundtrack, and sound effects\n5. **Post-Production**: Editing, effects, and final rendering\n\nLet me know the topic or theme you want, and I'll begin the production process immediately.";
+      return { 
+        response: "Got it, full production. I'll coordinate all departments - story, characters, camera, audio, everything. What's it about?", 
+        department: 'story' 
+      };
     }
     
-    // Script requests
-    if (lowerMessage.includes('script') || lowerMessage.includes('story')) {
-      return "I'll create a professional script for you with:\n- Engaging hook and narrative structure\n- Character development and dialogue\n- Scene descriptions and action beats\n- Pacing optimized for viewer retention\n\nWhat's the topic, genre, or theme you'd like the script to focus on?";
-    }
-    
-    // Character requests
-    if (lowerMessage.includes('character')) {
-      return "I'll design realistic characters with detailed profiles including:\n- Appearance and visual design\n- Personality traits and motivations\n- Background story\n- Movement patterns and mannerisms\n\nDescribe the type of character you need, and I'll bring them to life.";
-    }
-    
-    // General creative request
-    return "I understand you want to create something. I can help with:\n- **Videos & Episodes**: Full production from script to final render\n- **Scripts & Stories**: Compelling narratives optimized for engagement\n- **Characters**: Realistic character design and animation\n- **Audio**: Music, dialogue, and sound effects\n\nWhat specifically would you like me to create?";
+    // Generic creative request
+    return { 
+      response: "What do you want to create?", 
+      department: null 
+    };
   }
   
   if (isQuestion) {
     // Questions about capabilities
     if (lowerMessage.includes('what can') || lowerMessage.includes('what do')) {
-      return "As a God-Tier AI Orchestrator, I manage seven specialized departments:\n\n1. **Story Director**: Scripts, narratives, storyboards\n2. **Character & Movement**: Character design, animation, dialogue sync\n3. **Soundtrack**: Music composition and audio production\n4. **Cinematography**: Camera work, lighting, scene transitions\n5. **Dialogue**: Voice synthesis and TTS\n6. **Post-Production**: Editing, effects, color grading\n7. **Marketing & Analytics**: Viral optimization and trend analysis\n\nI coordinate all these to produce professional video content autonomously.";
+      return { 
+        response: "I run 7 departments: story/scripts, character design, music, camera work, dialogue/voice, editing, and marketing. What do you need?", 
+        department: null 
+      };
     }
     
     // Questions about process
     if (lowerMessage.includes('how') || lowerMessage.includes('process')) {
-      return "My production process:\n\n1. **Understanding**: I analyze your request and track context across our conversation\n2. **Planning**: I break down the project into coordinated tasks\n3. **Execution**: I orchestrate all production departments simultaneously\n4. **Quality Control**: I validate output and suggest improvements\n5. **Delivery**: I provide the final product with optimization recommendations\n\nI remember everything you tell me and build on it - no need to repeat yourself.";
+      return { 
+        response: "I handle everything - just tell me what you want and I'll coordinate the departments to make it happen.", 
+        department: null 
+      };
     }
   }
   
   // Check if this is a follow-up to previous conversation
   if (hasContext && lastMessage?.role === 'assistant') {
     if (isConfirmation) {
-      return "Great! I'll proceed with what we discussed. I'm starting the production process now and will keep you updated on progress.";
+      return { 
+        response: "Cool, starting now.", 
+        department: activeDepartment 
+      };
     }
     
     // Analyze if user is providing additional details
     if (!isGreeting && !isQuestion) {
-      return `Got it. Anything else you want to add?`;
+      return { 
+        response: `Got it. Anything else?`, 
+        department: activeDepartment 
+      };
     }
   }
   
   // Default intelligent response
-  return "Okay, what else?";
+  return { response: "Okay, what else?", department: activeDepartment };
 }
 
 Deno.serve(async (req) => {
@@ -111,16 +223,18 @@ Deno.serve(async (req) => {
       const conversationHistory = existingConversation?.conversation_data || [];
       const userGoals = existingConversation?.user_goals || [];
       const activeTopics = existingConversation?.active_topics || [];
+      const activeDepartment = existingConversation?.metadata?.active_department || null;
       
       console.log('🧠 Processing with local intelligence engine...');
       
       // Analyze user intent and generate intelligent response
-      const aiMessage = generateIntelligentResponse({
+      const { response: aiMessage, department: newDepartment } = generateIntelligentResponse({
         message,
         conversationHistory,
         userGoals,
         activeTopics,
-        context: { episodeId, projectId, currentPage: context?.currentPage }
+        context: { episodeId, projectId, currentPage: context?.currentPage },
+        activeDepartment
       });
 
       // Extract user goals and topics from the conversation
@@ -162,6 +276,7 @@ Deno.serve(async (req) => {
             user_goals: newGoals.slice(-10),
             active_topics: newTopics.slice(-10),
             updated_at: new Date().toISOString(),
+            metadata: { active_department: newDepartment }
           })
           .eq('session_id', actualSessionId);
       } else {
@@ -172,6 +287,7 @@ Deno.serve(async (req) => {
             conversation_data: compressedHistory,
             user_goals: newGoals,
             active_topics: newTopics,
+            metadata: { active_department: newDepartment }
           });
       }
 
@@ -186,7 +302,8 @@ Deno.serve(async (req) => {
           conversationLength: compressedHistory.length,
           trackedGoals: newGoals,
           activeTopics: newTopics,
-          message: '⚡ God-Tier GPT-5.1 Orchestrator - Local Intelligence Active'
+          activeDepartment: newDepartment,
+          message: '⚡ God-Tier Orchestrator - Smart Department Routing Active'
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
