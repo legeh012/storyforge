@@ -51,7 +51,7 @@ const ProductionStudio = () => {
     setProgress(0);
 
     try {
-      updateProgress('Initializing God-Tier Orchestrator...', 5);
+      updateProgress('Initializing Mayza...', 5);
 
       // Single orchestrator call handles everything
       const { data, error } = await supabase.functions.invoke('bot-orchestrator', {
@@ -122,7 +122,7 @@ const ProductionStudio = () => {
 
       toast({
         title: "🎬 Production Complete!",
-        description: "God-Tier Orchestrator has created your content.",
+        description: "Mayza has created your content.",
       });
 
     } catch (error) {
@@ -153,9 +153,9 @@ const ProductionStudio = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="God-Tier Production Studio | AI Production House"
+        title="Mayza Production Studio | AI Production House"
         description="Professional AI-powered production studio with all capabilities: script writing, video production, audio mastering, and viral optimization."
-        keywords={["AI production", "video creation", "god-tier AI", "content studio"]}
+        keywords={["AI production", "video creation", "Mayza AI", "content studio"]}
       />
       <Navigation />
 
@@ -168,7 +168,7 @@ const ProductionStudio = () => {
             <Trophy className="h-12 w-12 text-yellow-500" />
           </div>
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-            God-Tier Production Studio
+            Mayza Production Studio
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             One orchestrator. All capabilities. Complete production in minutes.
@@ -214,7 +214,7 @@ const ProductionStudio = () => {
                 Production Control Center
               </CardTitle>
               <CardDescription>
-                Describe your vision. The God-Tier Orchestrator handles everything.
+                Describe your vision. Mayza handles everything.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -256,7 +256,7 @@ const ProductionStudio = () => {
                   ) : (
                     <>
                       <Play className="h-5 w-5 mr-2" />
-                      Start God-Tier Production
+                      Start Mayza Production
                     </>
                   )}
                 </Button>
@@ -278,7 +278,7 @@ const ProductionStudio = () => {
                   <div>
                     <CardTitle className="text-2xl">Production Complete!</CardTitle>
                     <CardDescription>
-                      God-Tier Orchestrator successfully created your content
+                      Mayza successfully created your content
                     </CardDescription>
                   </div>
                 </div>
@@ -354,7 +354,7 @@ const ProductionStudio = () => {
                     <TabsContent value="technical" className="space-y-3">
                       <div className="bg-muted p-4 rounded-lg">
                         <p className="text-sm text-muted-foreground">
-                          All production tasks handled by God-Tier Orchestrator with full capability integration.
+                          All production tasks handled by Mayza with full capability integration.
                         </p>
                       </div>
                     </TabsContent>

@@ -21,7 +21,7 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
   const godTierBots = [
     {
       id: 'veo-video-bot',
-      name: 'Veo God-Tier Generator',
+      name: 'Veo Mayza Generator',
       icon: Video,
       description: 'AI-powered video generation with Veo 3.1-level quality',
       features: ['Photorealistic frames', 'Cinematic analysis', 'Advanced lighting', 'Color grading'],
@@ -52,14 +52,14 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
     
     try {
       toast({
-        title: "🎬 God-Tier Production Started",
+        title: "🎬 Mayza Production Started",
         description: `Running ${botId} with advanced AI capabilities...`,
       });
 
       const { data, error } = await supabase.functions.invoke(botId, {
         body: { 
           episodeId,
-          enhancementLevel: 'god-tier'
+          enhancementLevel: 'mayza'
         }
       });
 
@@ -70,7 +70,7 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
         description: `Generated ${data.totalFrames} frames in ${data.totalDuration}s`,
       });
     } catch (error: any) {
-      console.error('God-tier bot error:', error);
+      console.error('Mayza bot error:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -98,7 +98,7 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-            <CardTitle className="text-2xl">God-Tier Video Production</CardTitle>
+            <CardTitle className="text-2xl">Mayza Video Production</CardTitle>
           </div>
           <CardDescription>
             AI-powered video generation with Veo 3.1-level cinematic quality

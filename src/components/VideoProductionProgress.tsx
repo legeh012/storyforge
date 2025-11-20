@@ -96,7 +96,7 @@ export const VideoProductionProgress = ({ episodeId, onComplete }: VideoProducti
           <div className="flex items-center gap-3">
             {getStatusIcon()}
             <div>
-              <CardTitle className="text-lg">God-Tier Video Production</CardTitle>
+              <CardTitle className="text-lg">Mayza Video Production</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">{progress.currentStep}</p>
             </div>
           </div>
