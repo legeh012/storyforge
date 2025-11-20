@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, Sparkles, Zap, Code, Film, Palette, Music, TrendingUp, Power, Paperclip, Image as ImageIcon, File } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Sparkles, Zap, Code, Film, Palette, Music, TrendingUp, Power, Paperclip, Image as ImageIcon, File, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
@@ -27,6 +27,7 @@ const GOD_TIER_CAPABILITIES = [
   { icon: Sparkles, label: 'AI Engineer', color: 'text-yellow-500' },
   { icon: Zap, label: 'Task Automator', color: 'text-cyan-500' },
   { icon: MessageSquare, label: 'Digital Assistant', color: 'text-indigo-500' },
+  { icon: Bot, label: 'Bot Creator', color: 'text-violet-500' },
 ];
 
 export const GodTierOrchestrator = () => {
@@ -41,7 +42,7 @@ export const GodTierOrchestrator = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
+      content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, bot creation, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
       capabilities: GOD_TIER_CAPABILITIES.map(c => c.label)
     }
   ]);

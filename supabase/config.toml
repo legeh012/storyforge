@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.ai-copilot]
 verify_jwt = false
+
+[functions.bot-creator]
+verify_jwt = true
