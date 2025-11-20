@@ -21,7 +21,13 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
   
   // Generate contextual response
   if (isGreeting && !hasContext) {
-    return "Welcome to the God-Tier AI Production Studio! I'm your autonomous orchestrator, ready to help you create professional-grade video content. I can handle everything from scriptwriting and storyboarding to final video production with realistic visuals and audio. What would you like to create today?";
+    const greetings = [
+      "Hey! What's up?",
+      "Hi :) what are we doing today?",
+      "Hey, how can I help?",
+      "Hi! What do you need?"
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
   }
   
   if (isRequest) {
@@ -64,12 +70,12 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
     
     // Analyze if user is providing additional details
     if (!isGreeting && !isQuestion) {
-      return `I've noted: "${message}". I'm incorporating this into the current project. I remember all our previous context, so I'm building on everything you've already told me. Is there anything else you'd like to add, or should I proceed with production?`;
+      return `Got it. Anything else you want to add?`;
     }
   }
   
   // Default intelligent response
-  return "I understand. I'm tracking this in our conversation context. Based on everything you've told me so far, I'm ready to help you create professional content. What would you like me to focus on next?";
+  return "Okay, what else?";
 }
 
 Deno.serve(async (req) => {
