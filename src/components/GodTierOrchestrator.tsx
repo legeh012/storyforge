@@ -29,7 +29,10 @@ const GOD_TIER_CAPABILITIES = [
 
 export const GodTierOrchestrator = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isActive, setIsActive] = useState(true);
+  const [isActive, setIsActive] = useState(() => {
+    const saved = localStorage.getItem('mayza-active-state');
+    return saved !== null ? saved === 'true' : true;
+  });
   const [sessionId] = useState(() => crypto.randomUUID());
   const [activeDepartments, setActiveDepartments] = useState<string[]>([]);
   const [handoff, setHandoff] = useState<{from: string; to: string; context: string} | null>(null);
@@ -57,7 +60,11 @@ export const GodTierOrchestrator = () => {
   }, [messages]);
 
   const toggleActive = () => {
-    setIsActive(prev => !prev);
+    setIsActive(prev => {
+      const newState = !prev;
+      localStorage.setItem('mayza-active-state', String(newState));
+      return newState;
+    });
     toast({
       title: isActive ? "Orchestrator Deactivated" : "Orchestrator Activated",
       description: isActive 
