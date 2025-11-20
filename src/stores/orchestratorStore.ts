@@ -40,7 +40,10 @@ export const useOrchestratorStore = create<OrchestratorState>()(
   immer((set) => ({
     // Initial state
     sessionId: crypto.randomUUID(),
-    isActive: true,
+    isActive: (() => {
+      const saved = localStorage.getItem('mayza-active-state');
+      return saved !== null ? saved === 'true' : true;
+    })(),
     isLoading: false,
     messages: [
       {
@@ -56,6 +59,7 @@ export const useOrchestratorStore = create<OrchestratorState>()(
     // Actions
     setIsActive: (active) => set((state) => {
       state.isActive = active;
+      localStorage.setItem('mayza-active-state', String(active));
     }),
 
     setIsLoading: (loading) => set((state) => {
@@ -87,6 +91,9 @@ export const useOrchestratorStore = create<OrchestratorState>()(
     }),
 
     resetSession: () => set((state) => {
+      const savedActiveState = localStorage.getItem('mayza-active-state');
+      const currentActiveState = savedActiveState !== null ? savedActiveState === 'true' : true;
+      
       state.sessionId = crypto.randomUUID();
       state.isLoading = false;
       state.messages = [
@@ -99,6 +106,8 @@ export const useOrchestratorStore = create<OrchestratorState>()(
       state.activeDepartments = [];
       state.handoff = null;
       state.uploadedFiles = [];
+      // Preserve the current active state
+      state.isActive = currentActiveState;
     }),
   }))
 );
