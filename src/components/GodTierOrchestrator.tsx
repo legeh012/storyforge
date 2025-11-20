@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Loader2, Sparkles, Zap, Code, Film, Palette, Music, TrendingUp, Power } from 'lucide-react';
+import { MessageSquare, X, Send, Loader2, Sparkles, Zap, Code, Film, Palette, Music, TrendingUp, Power, Paperclip, Image as ImageIcon, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
@@ -15,6 +15,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   capabilities?: string[];
+  files?: Array<{ name: string; type: string; url: string }>;
 }
 
 const GOD_TIER_CAPABILITIES = [
@@ -41,7 +42,10 @@ export const GodTierOrchestrator = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; type: string; url: string }>>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const scrollToBottom = () => {
@@ -59,6 +63,63 @@ export const GodTierOrchestrator = () => {
       description: isActive 
         ? "Chat is now inactive. Toggle to reactivate." 
         : "All god-tier capabilities are now online.",
+    });
+  };
+
+  const handleFileUpload = (files: FileList | null) => {
+    if (!files) return;
+
+    const newFiles: Array<{ name: string; type: string; url: string }> = [];
+    Array.from(files).forEach((file) => {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: `${file.name} exceeds 10MB limit`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create object URL for preview
+      const url = URL.createObjectURL(file);
+      newFiles.push({
+        name: file.name,
+        type: file.type,
+        url,
+      });
+    });
+
+    setUploadedFiles((prev) => [...prev, ...newFiles]);
+    toast({
+      title: "Files uploaded",
+      description: `${newFiles.length} file(s) ready to send`,
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    handleFileUpload(e.dataTransfer.files);
+  };
+
+  const removeFile = (index: number) => {
+    setUploadedFiles((prev) => {
+      URL.revokeObjectURL(prev[index].url);
+      return prev.filter((_, i) => i !== index);
     });
   };
 
@@ -85,16 +146,31 @@ export const GodTierOrchestrator = () => {
       setInput('');
       setIsLoading(true);
 
-      setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+      const userMsg: Message = { 
+        role: 'user', 
+        content: userMessage,
+        files: uploadedFiles.length > 0 ? [...uploadedFiles] : undefined
+      };
+      
+      setMessages(prev => [...prev, userMsg]);
+      
+      // Clear uploaded files after sending
+      uploadedFiles.forEach(file => URL.revokeObjectURL(file.url));
+      setUploadedFiles([]);
 
       // Prepare deep context for GPT-5.1-like processing
       const context = {
         currentPage: window.location.pathname,
         conversationHistory: messages.map(m => ({
           role: m.role,
-          content: m.content
+          content: m.content,
+          files: m.files
         })),
-        godTierMode: true
+        godTierMode: true,
+        attachedFiles: uploadedFiles.length > 0 ? uploadedFiles.map(f => ({
+          name: f.name,
+          type: f.type
+        })) : undefined
       };
 
       const { data, error } = await supabase.functions.invoke('bot-orchestrator', {
@@ -285,7 +361,21 @@ export const GodTierOrchestrator = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {isDragging && (
+          <div className="absolute inset-4 border-2 border-dashed border-primary rounded-lg bg-primary/10 flex items-center justify-center z-10 pointer-events-none">
+            <div className="text-center">
+              <File className="h-12 w-12 mx-auto mb-2 text-primary" />
+              <p className="text-sm font-medium text-primary">Drop files here</p>
+            </div>
+          </div>
+        )}
+        
         {messages.map((msg, idx) => (
           <div
             key={idx}
@@ -307,6 +397,27 @@ export const GodTierOrchestrator = () => {
                   ))}
                 </div>
               )}
+              
+              {msg.files && msg.files.length > 0 && (
+                <div className="mb-2 space-y-2">
+                  {msg.files.map((file, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs bg-black/20 rounded p-2">
+                      {file.type.startsWith('image/') ? (
+                        <>
+                          <img src={file.url} alt={file.name} className="h-12 w-12 object-cover rounded" />
+                          <span className="truncate">{file.name}</span>
+                        </>
+                      ) : (
+                        <>
+                          <File className="h-4 w-4" />
+                          <span className="truncate">{file.name}</span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
               <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
             </div>
           </div>
@@ -327,8 +438,70 @@ export const GodTierOrchestrator = () => {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t bg-background">
+      <div className="p-4 border-t bg-background space-y-2">
+        {/* File Preview */}
+        {uploadedFiles.length > 0 && (
+          <div className="flex flex-wrap gap-2 p-2 bg-muted/50 rounded-lg">
+            {uploadedFiles.map((file, i) => (
+              <div key={i} className="relative group">
+                {file.type.startsWith('image/') ? (
+                  <div className="relative">
+                    <img 
+                      src={file.url} 
+                      alt={file.name} 
+                      className="h-16 w-16 object-cover rounded border border-border"
+                    />
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-5 w-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => removeFile(i)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="relative flex items-center gap-2 bg-background border border-border rounded px-3 py-2 pr-8">
+                    <File className="h-4 w-4" />
+                    <span className="text-xs truncate max-w-[100px]">{file.name}</span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="absolute right-1 top-1 h-5 w-5"
+                      onClick={() => removeFile(i)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="flex gap-2">
+          <div className="flex gap-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+              className="hidden"
+              onChange={(e) => handleFileUpload(e.target.files)}
+              disabled={!isActive}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!isActive}
+              className="h-[60px] w-[60px]"
+            >
+              <Paperclip className="h-5 w-5" />
+            </Button>
+          </div>
+          
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -355,8 +528,8 @@ export const GodTierOrchestrator = () => {
             )}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Press Enter to send • Shift+Enter for new line
+        <p className="text-xs text-muted-foreground">
+          Press Enter to send • Shift+Enter for new line • Drag & drop files
         </p>
       </div>
     </Card>
