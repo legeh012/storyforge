@@ -115,6 +115,22 @@ export const GodTierOrchestrator = () => {
         throw new Error(errorMsg);
       }
 
+      console.log('🎯 Response:', data);
+      
+      // Show active department if present
+      if (data.activeDepartment) {
+        const deptNames: Record<string, string> = {
+          story: '📖 Story Director',
+          character: '🎭 Character Design',
+          soundtrack: '🎵 Soundtrack',
+          cinematography: '🎬 Cinematography',
+          dialogue: '🎙️ Dialogue & Voice',
+          post_production: '✂️ Post-Production',
+          marketing: '📊 Marketing'
+        };
+        console.log(`🏢 Active Department: ${deptNames[data.activeDepartment] || data.activeDepartment}`);
+      }
+
       const assistantMessage = data?.response || data?.message || 'Task initiated. All god-tier capabilities are engaged.';
       
       setMessages(prev => [...prev, {
