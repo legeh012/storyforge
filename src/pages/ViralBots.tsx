@@ -103,7 +103,7 @@ const ViralBots = () => {
       bot_type: bot.type,
       name: bot.name,
       is_active: bot.category === 'viral' || bot.category === 'creator' || bot.category === 'production',
-    })) as any; // Temporary cast until types regenerate with ultra_video
+    }));
 
     const { error } = await supabase.from('viral_bots').insert(defaultBots);
     

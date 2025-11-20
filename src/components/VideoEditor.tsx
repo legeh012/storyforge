@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Canvas as FabricCanvas, IText, Image as FabricImage } from 'fabric';
+import { logger } from '@/lib/logger';
 
 interface Scene {
   id: string;
@@ -89,7 +90,7 @@ export const VideoEditor = ({ episodeId, scenes, onScenesUpdate }: VideoEditorPr
           });
           fabricCanvas.add(img);
         } catch (error) {
-          console.error('Failed to load image:', error);
+          logger.error('Failed to load image in canvas', error);
         }
       }
     }

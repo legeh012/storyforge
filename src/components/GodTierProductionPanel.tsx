@@ -7,6 +7,7 @@ import { Sparkles, Video, Film, Camera, Clapperboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { VideoProductionProgress } from "./VideoProductionProgress";
+import { logger } from "@/lib/logger";
 
 interface GodTierProductionPanelProps {
   episodeId?: string;
@@ -70,7 +71,7 @@ export const GodTierProductionPanel = ({ episodeId }: GodTierProductionPanelProp
         description: `Generated ${data.totalFrames} frames in ${data.totalDuration}s`,
       });
     } catch (error: any) {
-      console.error('Mayza bot error:', error);
+      logger.error('God tier bot execution failed', error, { botId, episodeId });
       toast({
         title: "Error",
         description: error.message,
