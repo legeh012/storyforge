@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { signUpSchema, signInSchema, resetPasswordSchema } from '@/lib/validations';
 import { z } from 'zod';
+import { Zap, Loader2 } from 'lucide-react';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -145,11 +146,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome to StoryForge</CardTitle>
-          <CardDescription>Sign in or create an account to get started</CardDescription>
+        <CardHeader className="text-center space-y-2">
+          <div className="flex justify-center mb-2">
+            <div className="h-12 w-12 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 flex items-center justify-center">
+              <Zap className="h-6 w-6 text-white" />
+            </div>
+          </div>
+          <CardTitle className="text-2xl font-bold">Welcome to Mayza</CardTitle>
+          <CardDescription>AI God-Level Production Studio</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -182,8 +188,19 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Signing in...' : 'Sign In'}
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    'Sign In'
+                  )}
                 </Button>
                 <Button
                   type="button"
@@ -243,8 +260,19 @@ const Auth = () => {
                     minLength={6}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Creating account...' : 'Sign Up'}
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 hover:from-purple-700 hover:via-pink-700 hover:to-orange-700" 
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    'Sign Up'
+                  )}
                 </Button>
               </form>
             </TabsContent>
