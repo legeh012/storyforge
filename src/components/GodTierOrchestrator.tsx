@@ -25,6 +25,8 @@ const GOD_TIER_CAPABILITIES = [
   { icon: Music, label: 'Audio Master', color: 'text-green-500' },
   { icon: TrendingUp, label: 'Viral Optimizer', color: 'text-orange-500' },
   { icon: Sparkles, label: 'AI Engineer', color: 'text-yellow-500' },
+  { icon: Zap, label: 'Task Automator', color: 'text-cyan-500' },
+  { icon: MessageSquare, label: 'Digital Assistant', color: 'text-indigo-500' },
 ];
 
 export const GodTierOrchestrator = () => {
@@ -39,7 +41,7 @@ export const GodTierOrchestrator = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "I'm Mayza, your AI orchestrator with GPT-5.1 capabilities. I track our entire conversation deeply, infer your intent even from incomplete instructions, and work toward your goals without asking redundant questions. I can build apps, direct videos, optimize for virality, engineer solutions, and orchestrate complete production workflows. What do you want to create?",
+      content: "Hey! I'm Mayza - your comprehensive AI productivity system. I listen, interpret your intentions, and execute actions across all aspects of your life. I can handle work tasks, school projects, development, writing, planning, automation, file management, app control, video production, and anything else you need. I track our entire conversation deeply and work toward your goals without redundant questions. What's up?",
       capabilities: GOD_TIER_CAPABILITIES.map(c => c.label)
     }
   ]);
@@ -391,7 +393,7 @@ export const GodTierOrchestrator = () => {
           <div>
             <h3 className="font-bold text-lg">Mayza</h3>
             <p className={`text-xs ${isActive ? 'text-white/80' : 'text-muted-foreground'}`}>
-              {isActive ? 'GPT-5.1 Mode • Deep Context Tracking' : 'Inactive'}
+              {isActive ? 'AI Productivity System • Work • School • Life' : 'Inactive'}
             </p>
           </div>
         </div>
