@@ -2,16 +2,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
-  Play, Pause, RotateCcw, Download, Zap, Image as ImageIcon,
-  Video, Mic, Music, Type, Sparkles, Loader2, Film
+  Play, Pause, RotateCcw, Image as ImageIcon,
+  Mic, Music, Type, Sparkles, Loader2, Film
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Canvas as FabricCanvas, IText, Image as FabricImage } from 'fabric';
 import { logger } from '@/lib/logger';
 import { supabase } from '@/integrations/supabase/client';
+import { AutoEditingPanel } from './AutoEditingPanel';
 
 interface Scene {
   id: string;
@@ -232,6 +232,13 @@ export const VideoEditor = ({ episodeId, scenes, onScenesUpdate }: VideoEditorPr
 
   return (
     <div className="space-y-6">
+      {/* Auto-Editing Panel */}
+      <AutoEditingPanel
+        episodeId={episodeId}
+        scenes={scenes}
+        onScenesUpdate={onScenesUpdate}
+      />
+
       {/* Video Preview */}
       <Card className="p-6 bg-black border-primary/20">
         <div className="relative aspect-video bg-black rounded-lg overflow-hidden shadow-2xl">
