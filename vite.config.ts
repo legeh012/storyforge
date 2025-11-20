@@ -32,9 +32,9 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
-        name: 'StoryForge - AI Reality TV Studio',
-        short_name: 'StoryForge',
-        description: 'Create viral AI-powered reality TV episodes with autonomous bot orchestration',
+        name: 'SomaHertigateApp',
+        short_name: 'SomaHertigateApp',
+        description: 'AI-powered productivity and automation platform with Mayza intelligent assistant',
         theme_color: '#6366f1',
         background_color: '#0a0a0a',
         display: 'standalone',
