@@ -117,8 +117,8 @@ export const GodTierOrchestrator = () => {
 
       console.log('🎯 Response:', data);
       
-      // Show active department if present
-      if (data.activeDepartment) {
+      // Show active departments if present
+      if (data.activeDepartments && data.activeDepartments.length > 0) {
         const deptNames: Record<string, string> = {
           story: '📖 Story Director',
           character: '🎭 Character Design',
@@ -128,7 +128,13 @@ export const GodTierOrchestrator = () => {
           post_production: '✂️ Post-Production',
           marketing: '📊 Marketing'
         };
-        console.log(`🏢 Active Department: ${deptNames[data.activeDepartment] || data.activeDepartment}`);
+        
+        if (data.activeDepartments.length === 1) {
+          console.log(`🏢 Active Department: ${deptNames[data.activeDepartments[0]] || data.activeDepartments[0]}`);
+        } else {
+          const collabDepts = data.activeDepartments.map((d: string) => deptNames[d] || d).join(', ');
+          console.log(`🤝 Collaborating Departments: ${collabDepts}`);
+        }
       }
 
       const assistantMessage = data?.response || data?.message || 'Task initiated. All god-tier capabilities are engaged.';
