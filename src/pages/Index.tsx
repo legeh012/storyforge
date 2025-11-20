@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
 import SEOHead from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -7,11 +10,27 @@ import { ArrowRight, Sparkles, Users, BookOpen, Zap, Globe, Palette, Clapperboar
 import { Link } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="StoryForge - Create Viral AI Stories | YouTube, TikTok, Instagram Automation"
+        title="Mayza - AI God-Level Production Studio | Create Viral Stories"
         description="Create viral interactive stories with AI. Auto-publish to YouTube, TikTok, Instagram. Trending hashtags, SEO optimization, and viral analytics built-in. Start going viral today!"
         keywords={['viral content', 'AI storytelling', 'YouTube automation', 'TikTok viral', 'Instagram reels', 'content creator', 'trending videos', 'social media automation']}
       />
@@ -40,15 +59,26 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/create">
-                <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg px-8">
-                  Get Started Free
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10 text-lg px-8">
-                Watch Demo
-              </Button>
+              {isAuthenticated ? (
+                <Link to="/dashboard">
+                  <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg px-8">
+                    Go to Dashboard
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity text-lg px-8">
+                      Get Started Free
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Button size="lg" variant="outline" className="border-primary/50 hover:bg-primary/10 text-lg px-8">
+                    Watch Demo
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

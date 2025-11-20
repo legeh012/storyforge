@@ -8,6 +8,7 @@ import { GodTierOrchestrator } from "@/components/GodTierOrchestrator";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import { SyncQueueIndicator } from "@/components/SyncQueueIndicator";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Characters from "./pages/Characters";
@@ -52,20 +53,20 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/profile" element={<Profile />} />
           <Route path="/install" element={<Install />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/characters" element={<Characters />} />
-          <Route path="/episodes" element={<Episodes />} />
-          <Route path="/episodes/:id" element={<EpisodeDetail />} />
-          <Route path="/workflow" element={<Workflow />} />
-          <Route path="/create" element={<CreateProject />} />
-          <Route path="/media" element={<MediaLibrary />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/system-monitor" element={<SystemMonitor />} />
-          <Route path="/viral-bots" element={<ViralBots />} />
-          <Route path="/video-generation" element={<VideoGeneration />} />
-          <Route path="/production-studio" element={<ProductionStudio />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/characters" element={<ProtectedRoute><Characters /></ProtectedRoute>} />
+          <Route path="/episodes" element={<ProtectedRoute><Episodes /></ProtectedRoute>} />
+          <Route path="/episodes/:id" element={<ProtectedRoute><EpisodeDetail /></ProtectedRoute>} />
+          <Route path="/workflow" element={<ProtectedRoute><Workflow /></ProtectedRoute>} />
+          <Route path="/create" element={<ProtectedRoute><CreateProject /></ProtectedRoute>} />
+          <Route path="/media" element={<ProtectedRoute><MediaLibrary /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+          <Route path="/system-monitor" element={<ProtectedRoute><SystemMonitor /></ProtectedRoute>} />
+          <Route path="/viral-bots" element={<ProtectedRoute><ViralBots /></ProtectedRoute>} />
+          <Route path="/video-generation" element={<ProtectedRoute><VideoGeneration /></ProtectedRoute>} />
+          <Route path="/production-studio" element={<ProtectedRoute><ProductionStudio /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
