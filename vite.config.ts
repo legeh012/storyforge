@@ -8,6 +8,31 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    hmr: {
+      overlay: true,
+    },
+    watch: {
+      // Exclude node_modules and build artifacts from watching
+      ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
+    },
+  },
+  // Pre-bundle dependencies for faster dev server startup
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@supabase/supabase-js',
+      '@tanstack/react-query',
+      'framer-motion',
+      'zustand',
+      'lucide-react',
+    ],
+    exclude: ['lovable-tagger'],
+  },
+  // Speed up builds with esbuild
+  esbuild: {
+    logOverride: { 'this-is-undefined-in-esm': 'silent' },
   },
   build: {
     rollupOptions: {
