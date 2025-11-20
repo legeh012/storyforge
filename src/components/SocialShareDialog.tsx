@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Youtube, Facebook, Instagram, Twitter, Share2, Copy, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 type MediaAsset = {
   id: string;
@@ -51,35 +52,93 @@ const SocialShareDialog = ({ open, onOpenChange, asset }: SocialShareDialogProps
 
   const handleYouTubeUpload = async () => {
     setUploading(true);
-    // TODO: Implement YouTube upload via edge function
-    toast({
-      title: "Coming Soon",
-      description: "YouTube upload functionality will be available soon. Configure your YouTube API credentials in settings.",
-      variant: "destructive",
-    });
-    setUploading(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('social-media-uploader', {
+        body: {
+          platform: 'youtube',
+          videoUrl: asset?.asset_url,
+          title,
+          description,
+          tags: tags.split(',').map(t => t.trim()),
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "YouTube Upload Queued",
+        description: data.message || "Video upload initiated",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to upload to YouTube",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleTikTokUpload = async () => {
     setUploading(true);
-    // TODO: Implement TikTok upload via edge function
-    toast({
-      title: "Coming Soon",
-      description: "TikTok upload functionality will be available soon. Configure your TikTok API credentials in settings.",
-      variant: "destructive",
-    });
-    setUploading(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('social-media-uploader', {
+        body: {
+          platform: 'tiktok',
+          videoUrl: asset?.asset_url,
+          title,
+          description,
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "TikTok Upload Queued",
+        description: data.message || "Video upload initiated",
+      });
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to upload to TikTok",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleInstagramShare = async () => {
     setUploading(true);
-    // TODO: Implement Instagram share via edge function
-    toast({
-      title: "Coming Soon",
-      description: "Instagram sharing will be available soon. Configure your Instagram API credentials in settings.",
-      variant: "destructive",
-    });
-    setUploading(false);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('social-media-uploader', {
+        body: {
+          platform: 'instagram',
+          videoUrl: asset?.asset_url,
+          title,
+          description,
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Instagram Share Queued",
+        description: data.message || "Video share initiated",
+      });
+    } catch (error) {
+      toast({
+        title: "Share Failed",
+        description: error instanceof Error ? error.message : "Failed to share to Instagram",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleTwitterShare = async () => {

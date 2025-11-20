@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Video, Play, Loader2, AlertCircle, CheckCircle2, Camera, Sparkles, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface Episode {
   id: string;
@@ -147,7 +148,7 @@ export const VideoRenderer = ({ episode, onStatusChange }: VideoRendererProps) =
     }
 
     try {
-      console.log('Downloading clips for episode:', episode.id);
+      logger.info('Downloading clips for episode', { episodeId: episode.id, title: episode.title });
       
       // Get user ID from auth
       const { data: { user } } = await supabase.auth.getUser();
@@ -158,7 +159,7 @@ export const VideoRenderer = ({ episode, onStatusChange }: VideoRendererProps) =
         .download(`${user.id}/${episode.id}/metadata.json`);
 
       if (downloadError) {
-        console.error('Metadata download error:', downloadError);
+        logger.error('Metadata download failed', downloadError);
         throw downloadError;
       }
 
@@ -166,7 +167,7 @@ export const VideoRenderer = ({ episode, onStatusChange }: VideoRendererProps) =
         const text = await data.text();
         const metadata = JSON.parse(text);
         
-        console.log('Clip metadata:', metadata);
+        logger.debug('Clip metadata retrieved', { clipCount: metadata.clips?.length || metadata.scenes?.length });
         
         // Handle both 'clips' and 'scenes' formats
         const items = metadata.clips || metadata.scenes || [];
@@ -207,7 +208,7 @@ export const VideoRenderer = ({ episode, onStatusChange }: VideoRendererProps) =
         throw new Error('Failed to retrieve metadata');
       }
     } catch (error) {
-      console.error('Clip download error:', error);
+      logger.error('Clip download failed', error);
       toast({
         title: 'Download failed',
         description: error instanceof Error ? error.message : 'Could not download video clips',

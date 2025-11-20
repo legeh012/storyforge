@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Sparkles, Loader2, Video } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 interface PromptGeneratorProps {
   projectId: string;
@@ -30,7 +31,7 @@ export const PromptGenerator = ({ projectId, onEpisodeGenerated }: PromptGenerat
     setIsGenerating(true);
 
     try {
-      console.log('Generating episode from prompt:', prompt);
+      logger.info('Generating episode from prompt', { projectId, promptLength: prompt.length });
       
       toast({
         title: 'AI Episode Generator',
@@ -45,11 +46,11 @@ export const PromptGenerator = ({ projectId, onEpisodeGenerated }: PromptGenerat
       });
 
       if (error) {
-        console.error('Generation error:', error);
+        logger.error('Episode generation error', error);
         throw error;
       }
 
-      console.log('Episode generated:', data);
+      logger.success('Episode generated successfully', { episodeId: data?.episodeId });
 
       toast({
         title: 'Episode generated successfully!',
@@ -59,7 +60,7 @@ export const PromptGenerator = ({ projectId, onEpisodeGenerated }: PromptGenerat
       setPrompt('');
       onEpisodeGenerated?.();
     } catch (error) {
-      console.error('Episode generation failed:', error);
+      logger.error('Episode generation failed', error);
       toast({
         title: 'Generation failed',
         description: error instanceof Error ? error.message : 'Failed to generate episode. Please try again.',

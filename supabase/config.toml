@@ -36,5 +36,5 @@ verify_jwt = true
 [functions.ai-copilot]
 verify_jwt = false
 
-[functions.bot-creator]
+[functions.social-media-uploader]
 verify_jwt = true

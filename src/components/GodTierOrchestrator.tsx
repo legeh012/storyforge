@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { DepartmentCollaboration } from '@/components/DepartmentCollaboration';
 import { messageSchema } from '@/lib/validations';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -115,7 +116,7 @@ export const GodTierOrchestrator = () => {
           });
 
         if (error) {
-          console.error('Upload error:', error);
+          logger.error('File upload failed', error, { fileName: file.name });
           toast({
             title: "Upload failed",
             description: `Failed to upload ${file.name}`,
@@ -135,7 +136,7 @@ export const GodTierOrchestrator = () => {
           url: publicUrl,
         };
       } catch (error) {
-        console.error('Upload error:', error);
+        logger.error('File upload exception', error, { fileName: file.name });
         toast({
           title: "Upload failed",
           description: `Failed to upload ${file.name}`,
@@ -193,11 +194,11 @@ export const GodTierOrchestrator = () => {
           .remove([filePath]);
 
         if (error) {
-          console.error('Delete error:', error);
+          logger.error('File deletion failed', error);
         }
       }
     } catch (error) {
-      console.error('Error removing file:', error);
+      logger.error('Error removing file from storage', error);
     }
 
     // Remove from local state
@@ -264,7 +265,10 @@ export const GodTierOrchestrator = () => {
       });
 
       if (error) {
-        console.error('Bot orchestrator error:', error);
+        logger.error('Bot orchestrator invocation failed', error, {
+          sessionId,
+          mode: 'god_tier',
+        });
         
         // Check for specific error codes in the response
         if (error.message?.includes('402') || error.context?.body?.error?.includes('credits')) {
@@ -279,7 +283,10 @@ export const GodTierOrchestrator = () => {
         throw new Error(errorMsg);
       }
 
-      console.log('🎯 Response:', data);
+      logger.debug('Bot orchestrator response received', { 
+        activeDepartments: data.activeDepartments,
+        hasHandoff: !!data.handoff 
+      });
       
       // Update active departments
       if (data.activeDepartments) {
@@ -289,28 +296,19 @@ export const GodTierOrchestrator = () => {
       // Show handoff if present
       if (data.handoff) {
         setHandoff(data.handoff);
-        console.log(`🔄 Handoff: ${data.handoff.from} → ${data.handoff.to}`);
-        console.log(`📝 Context: ${data.handoff.context}`);
+        logger.info('Department handoff', {
+          from: data.handoff.from,
+          to: data.handoff.to,
+          context: data.handoff.context,
+        });
       }
       
-      // Show active departments if present
+      // Track active departments
       if (data.activeDepartments && data.activeDepartments.length > 0) {
-        const deptNames: Record<string, string> = {
-          story: '📖 Story Director',
-          character: '🎭 Character Design',
-          soundtrack: '🎵 Soundtrack',
-          cinematography: '🎬 Cinematography',
-          dialogue: '🎙️ Dialogue & Voice',
-          post_production: '✂️ Post-Production',
-          marketing: '📊 Marketing'
-        };
-        
-        if (data.activeDepartments.length === 1) {
-          console.log(`🏢 Active Department: ${deptNames[data.activeDepartments[0]] || data.activeDepartments[0]}`);
-        } else {
-          const collabDepts = data.activeDepartments.map((d: string) => deptNames[d] || d).join(', ');
-          console.log(`🤝 Collaborating Departments: ${collabDepts}`);
-        }
+        logger.info('Active departments updated', {
+          departments: data.activeDepartments,
+          collaborationMode: data.activeDepartments.length > 1,
+        });
       }
 
       const assistantMessage = data?.response || data?.message || 'Task initiated. All Mayza capabilities are engaged.';
@@ -322,7 +320,7 @@ export const GodTierOrchestrator = () => {
       }]);
 
     } catch (error) {
-      console.error('Mayza orchestrator error:', error);
+      logger.error('Mayza orchestrator error', error, { sessionId });
       
       let errorMessage = 'An unexpected error occurred. Please try again.';
       

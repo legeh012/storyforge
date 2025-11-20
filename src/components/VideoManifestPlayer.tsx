@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface VideoFrame {
   url: string;
@@ -41,7 +42,7 @@ export const VideoManifestPlayer = ({ manifestUrl, className = '', controls = tr
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load video');
-        console.error('Manifest load error:', err);
+        logger.error('Video manifest load failed', err);
       } finally {
         setLoading(false);
       }

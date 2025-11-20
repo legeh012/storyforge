@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Video, Play } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/lib/logger';
 
 export const VideoGenerationForm = () => {
   const [episode, setEpisode] = useState('');
@@ -53,7 +54,7 @@ export const VideoGenerationForm = () => {
         });
       }
     } catch (error) {
-      console.error('Generation error:', error);
+      logger.error('Video generation failed', error, { episode, cast, music });
       toast({
         title: 'Generation Failed',
         description: error instanceof Error ? error.message : 'Failed to generate video',
