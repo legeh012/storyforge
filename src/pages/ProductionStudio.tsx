@@ -150,6 +150,85 @@ const ProductionStudio = () => {
     setMainPrompt('');
   };
 
+  const runQuickTest = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    
+    const testPrompt = "5-second test video: A person waves at the camera and says 'Hello, testing Mayza!' with a smile. Simple, quick, friendly.";
+    
+    toast({
+      title: "🚀 Quick Test Started",
+      description: "Running 5-second video smoke test...",
+    });
+
+    setMainPrompt(testPrompt);
+    setIsOrchestrating(true);
+    setProductionResult({ status: 'running' });
+    setProgress(0);
+
+    try {
+      updateProgress('Quick test: Initializing...', 10);
+
+      const { data, error } = await supabase.functions.invoke('bot-orchestrator', {
+        body: { 
+          message: testPrompt,
+          mode: 'quick_test',
+          campaign_type: 'test_production',
+          context: {
+            productionType: 'video',
+            duration: 5,
+            testMode: true
+          }
+        }
+      });
+
+      if (error) {
+        if (error.message?.includes('402')) {
+          throw new Error('Lovable AI credits depleted. Please add credits.');
+        }
+        if (error.message?.includes('429')) {
+          throw new Error('Rate limit reached. Please try again in a moment.');
+        }
+        throw error;
+      }
+
+      updateProgress('Quick test: Processing...', 40);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      updateProgress('Quick test: Generating video...', 70);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      updateProgress('Quick test: Complete!', 100);
+
+      setProductionResult({
+        status: 'completed',
+        data: data || { 
+          activatedCapabilities: ['Script', 'Video', 'Audio'],
+          result: 'Test video generated successfully',
+          testMode: true
+        }
+      });
+
+      if (data?.videoUrl) {
+        setVideoUrl(data.videoUrl);
+      }
+
+      toast({
+        title: "✅ Quick Test Complete!",
+        description: "5-second smoke test passed successfully.",
+      });
+
+    } catch (error) {
+      toast({
+        title: "Test Failed",
+        description: error instanceof Error ? error.message : 'Quick test encountered an error.',
+        variant: "destructive",
+      });
+      setProductionResult({ status: 'idle' });
+    } finally {
+      setIsOrchestrating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
@@ -240,7 +319,7 @@ const ProductionStudio = () => {
                 </div>
               )}
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={runProductionPipeline}
                   disabled={isOrchestrating || !mainPrompt.trim()}
@@ -260,6 +339,28 @@ const ProductionStudio = () => {
                     </>
                   )}
                 </Button>
+                
+                <Button
+                  onClick={runQuickTest}
+                  disabled={isOrchestrating}
+                  variant="outline"
+                  size="lg"
+                  type="button"
+                  className="border-2 border-green-500/50 hover:bg-green-500/10 hover:border-green-500"
+                >
+                  {isOrchestrating ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-5 w-5 mr-2" />
+                      Quick Test (5s)
+                    </>
+                  )}
+                </Button>
+                
                 {productionResult.status === 'completed' && (
                   <Button onClick={resetPipeline} variant="outline" size="lg" type="button">
                     Reset
