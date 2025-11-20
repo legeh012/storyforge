@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.social-media-uploader]
 verify_jwt = true
+
+[functions.auto-editor]
+verify_jwt = false
+
+[functions.bot-creator]
+verify_jwt = false

@@ -11,6 +11,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Canvas as FabricCanvas, IText, Image as FabricImage } from 'fabric';
 import { logger } from '@/lib/logger';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Scene {
   id: string;
@@ -163,6 +164,49 @@ export const VideoEditor = ({ episodeId, scenes, onScenesUpdate }: VideoEditorPr
     setIsPlaying(false);
   };
 
+  const handleAutoEdit = async () => {
+    setIsRendering(true);
+    
+    try {
+      toast({
+        title: "🤖 Mayza Auto-Editing",
+        description: "AI is analyzing and optimizing your scenes...",
+      });
+
+      const { data, error } = await supabase.functions.invoke('auto-editor', {
+        body: {
+          episodeId,
+          scenes,
+          preferences: {
+            style: 'cinematic',
+            pacing: 'medium',
+            mood: 'dramatic'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.editedScenes) {
+        onScenesUpdate(data.editedScenes);
+        
+        toast({
+          title: "✨ Auto-Edit Complete!",
+          description: `Quality Score: ${data.metadata.qualityScore}/10 | Duration: ${data.metadata.totalDuration}s`,
+        });
+      }
+    } catch (error) {
+      logger.error('Auto-edit failed', error);
+      toast({
+        title: "Auto-Edit Failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRendering(false);
+    }
+  };
+
   const addTextToScene = () => {
     const newScenes = [...scenes];
     if (!newScenes[currentScene].elements) {
@@ -236,6 +280,19 @@ export const VideoEditor = ({ episodeId, scenes, onScenesUpdate }: VideoEditorPr
               size="lg"
             >
               <RotateCcw className="h-5 w-5 mr-2" /> Reset
+            </Button>
+
+            <Button
+              onClick={handleAutoEdit}
+              disabled={isRendering}
+              size="lg"
+              className="bg-gradient-to-r from-green-600 to-emerald-600"
+            >
+              {isRendering ? (
+                <><Loader2 className="h-5 w-5 mr-2 animate-spin" /> Auto-Editing...</>
+              ) : (
+                <><Sparkles className="h-5 w-5 mr-2" /> Auto-Edit</>
+              )}
             </Button>
 
             <Button
