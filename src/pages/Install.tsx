@@ -59,24 +59,24 @@ const Install = () => {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <Smartphone className="h-4 w-4 text-primary" />
-              <span className="text-sm text-primary">Install StoryForge</span>
+              <span className="text-sm text-primary">Mobile-Optimized</span>
             </div>
             
-            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Install StoryForge on Your Device
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Install on Your iPhone
             </h1>
             
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Get instant access to your AI Reality TV Studio. Works offline, loads fast, feels like a native app.
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+              Add SomaHertigateApp to your home screen. Works offline, loads instantly, feels native.
             </p>
           </div>
 
           {isInstalled ? (
             <Card className="p-8 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30 text-center">
               <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Already Installed!</h2>
+              <h2 className="text-2xl font-bold mb-2">App Installed!</h2>
               <p className="text-muted-foreground">
-                StoryForge is already installed on your device. You can access it from your home screen.
+                SomaHertigateApp is installed. Access it from your iPhone home screen anytime.
               </p>
             </Card>
           ) : (
@@ -103,7 +103,7 @@ const Install = () => {
                   <Zap className="h-8 w-8 text-primary mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Lightning Fast</h3>
                   <p className="text-sm text-muted-foreground">
-                    Instant load times with offline support. Create episodes even without internet.
+                    Blazing fast load times with full offline support. Use Mayza AI anywhere.
                   </p>
                 </Card>
 
@@ -111,7 +111,7 @@ const Install = () => {
                   <Smartphone className="h-8 w-8 text-accent mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Native Feel</h3>
                   <p className="text-sm text-muted-foreground">
-                    Works like a real app on your home screen. No browser tabs needed.
+                    Full-screen app experience. No Safari UI, just your productivity assistant.
                   </p>
                 </Card>
 
