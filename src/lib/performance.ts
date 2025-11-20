@@ -97,12 +97,11 @@ export class PerformanceTracker {
     const end = endMark ? this.marks.get(endMark) : performance.now();
 
     if (!start) {
-      console.warn(`Start mark "${startMark}" not found`);
       return 0;
     }
 
     const duration = (end || performance.now()) - start;
-    console.log(`[Performance] ${name}: ${duration.toFixed(2)}ms`);
+    // Performance measured: ${name} in ${duration.toFixed(2)}ms
     return duration;
   }
 

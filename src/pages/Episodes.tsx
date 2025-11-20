@@ -75,8 +75,6 @@ const Episodes = () => {
         projectId = newProject.id;
       }
 
-      console.log('🚀 Generating 3-minute video with full bot orchestration...');
-
       toast({
         title: '🎬 Starting Video Production',
         description: 'Activating AI bots for script generation, direction, and video rendering...',
@@ -92,8 +90,6 @@ const Episodes = () => {
       });
 
       if (episodeError) throw episodeError;
-
-      console.log('✅ Episode created:', episodeData);
 
       const episodeId = episodeData.episodeId;
 
@@ -113,9 +109,7 @@ const Episodes = () => {
       });
 
       if (orchestratorError) {
-        console.warn('Orchestrator warning:', orchestratorError);
-      } else {
-        console.log('✅ Orchestrator activated:', orchestratorData);
+        // Orchestrator encountered an issue
       }
 
       // Step 3: Trigger video rendering
@@ -126,9 +120,7 @@ const Episodes = () => {
       });
 
       if (videoError) {
-        console.warn('Video rendering warning:', videoError);
-      } else {
-        console.log('✅ Video rendering started:', videoData);
+        // Video rendering encountered an issue
       }
 
       toast({

@@ -86,7 +86,7 @@ export const useProductionRealtime = (onUpdate?: (update: ProductionUpdate) => v
         }
       )
       .subscribe((status) => {
-        console.log('Production realtime status:', status);
+        // Production status update received
         setIsConnected(status === 'SUBSCRIBED');
       });
 

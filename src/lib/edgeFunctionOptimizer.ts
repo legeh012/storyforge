@@ -18,12 +18,10 @@ export const withCache = async <T>(
   });
 
   if (cacheData?.hit) {
-    console.log('⚡ GODLIKE Cache hit:', cacheKey);
     return cacheData.data as T;
   }
 
   // Cache miss - fetch data with extreme speed
-  console.log('💾 Cache miss, executing at lightspeed:', cacheKey);
   const result = await fetcher();
 
   // Store in cache with predictive TTL (fire and forget)
@@ -94,7 +92,7 @@ export const smartBatch = async <T, R>(
     } catch (error) {
       successRate *= 0.9;
       batchSize = Math.max(batchSize * 0.75, 10);
-      console.error('Batch execution error, reducing size:', batchSize);
+      // Reduce batch size on error
     }
   }
   
@@ -139,7 +137,6 @@ export const deduplicateRequest = async <T>(
   fetcher: () => Promise<T>
 ): Promise<T> => {
   if (requestCache.has(key)) {
-    console.log('🔄 Deduplicating request:', key);
     return requestCache.get(key);
   }
 
