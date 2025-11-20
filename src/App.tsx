@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GodTierOrchestrator } from "@/components/GodTierOrchestrator";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
+import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Characters from "./pages/Characters";
@@ -37,6 +39,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <OfflineIndicator />
+      <PerformanceMonitor />
       <BrowserRouter
         future={{
           v7_startTransition: true,
