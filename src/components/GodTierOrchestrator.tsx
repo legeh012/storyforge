@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { Switch } from '@/components/ui/switch';
+import { DepartmentCollaboration } from '@/components/DepartmentCollaboration';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -27,6 +28,8 @@ export const GodTierOrchestrator = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [sessionId] = useState(() => crypto.randomUUID());
+  const [activeDepartments, setActiveDepartments] = useState<string[]>([]);
+  const [handoff, setHandoff] = useState<{from: string; to: string; context: string} | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -116,6 +119,18 @@ export const GodTierOrchestrator = () => {
       }
 
       console.log('🎯 Response:', data);
+      
+      // Update active departments
+      if (data.activeDepartments) {
+        setActiveDepartments(data.activeDepartments);
+      }
+      
+      // Show handoff if present
+      if (data.handoff) {
+        setHandoff(data.handoff);
+        console.log(`🔄 Handoff: ${data.handoff.from} → ${data.handoff.to}`);
+        console.log(`📝 Context: ${data.handoff.context}`);
+      }
       
       // Show active departments if present
       if (data.activeDepartments && data.activeDepartments.length > 0) {
@@ -238,13 +253,23 @@ export const GodTierOrchestrator = () => {
       </div>
 
       {/* Capabilities Bar */}
-      <div className="p-2 bg-muted/30 border-b flex flex-wrap gap-1">
-        {GOD_TIER_CAPABILITIES.map((cap, idx) => (
-          <Badge key={idx} variant="secondary" className="text-xs gap-1">
-            <cap.icon className={`h-3 w-3 ${cap.color}`} />
-            {cap.label}
-          </Badge>
-        ))}
+      <div className="p-3 bg-muted/30 border-b space-y-2">
+        <div className="flex flex-wrap gap-1">
+          {GOD_TIER_CAPABILITIES.map((cap, idx) => (
+            <Badge key={idx} variant="secondary" className="text-xs gap-1">
+              <cap.icon className={`h-3 w-3 ${cap.color}`} />
+              {cap.label}
+            </Badge>
+          ))}
+        </div>
+        
+        {/* Department Collaboration Indicator */}
+        {activeDepartments.length > 0 && (
+          <DepartmentCollaboration 
+            departments={activeDepartments} 
+            handoff={handoff || undefined}
+          />
+        )}
       </div>
 
       {/* Messages */}

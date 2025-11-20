@@ -8,6 +8,71 @@ const corsHeaders = {
 // Department detection and routing
 type Department = 'story' | 'character' | 'soundtrack' | 'cinematography' | 'dialogue' | 'post_production' | 'marketing';
 
+// Department handoff logic
+interface Handoff {
+  from: Department;
+  to: Department;
+  context: string;
+}
+
+// Define natural workflow transitions
+const WORKFLOW_TRANSITIONS: Record<Department, Department[]> = {
+  story: ['character', 'dialogue', 'cinematography'],
+  character: ['dialogue', 'cinematography', 'soundtrack'],
+  soundtrack: ['dialogue', 'post_production'],
+  cinematography: ['post_production', 'character'],
+  dialogue: ['post_production', 'soundtrack'],
+  post_production: ['marketing'],
+  marketing: []
+};
+
+function detectHandoff(message: string, currentDepartments: Department[]): Handoff | null {
+  if (!currentDepartments || currentDepartments.length === 0) return null;
+  
+  const lowerMessage = message.toLowerCase();
+  const primaryDept = currentDepartments[0];
+  
+  // Explicit handoff keywords
+  if (/now (do|add|make|create|work on)/i.test(lowerMessage)) {
+    const possibleTransitions = WORKFLOW_TRANSITIONS[primaryDept];
+    
+    for (const nextDept of possibleTransitions) {
+      // Check if the message mentions the next department's domain
+      const deptKeywords: Record<Department, RegExp> = {
+        story: /(script|story|plot|narrative)/i,
+        character: /(character|design|appearance|personality)/i,
+        soundtrack: /(music|audio|sound|soundtrack)/i,
+        cinematography: /(camera|shot|angle|visual|lighting)/i,
+        dialogue: /(voice|dialogue|speech|lines)/i,
+        post_production: /(edit|effect|polish|render)/i,
+        marketing: /(viral|market|promote|optimize)/i
+      };
+      
+      if (deptKeywords[nextDept].test(lowerMessage)) {
+        return {
+          from: primaryDept,
+          to: nextDept,
+          context: `Transitioning from ${primaryDept} to ${nextDept} work`
+        };
+      }
+    }
+  }
+  
+  // Natural progression handoffs
+  if (/(done|finished|complete|ready).*(next|now what)/i.test(lowerMessage)) {
+    const possibleNext = WORKFLOW_TRANSITIONS[primaryDept];
+    if (possibleNext.length > 0) {
+      return {
+        from: primaryDept,
+        to: possibleNext[0],
+        context: `${primaryDept} completed, moving to ${possibleNext[0]}`
+      };
+    }
+  }
+  
+  return null;
+}
+
 // Multi-department collaboration patterns
 const COLLABORATION_PATTERNS: Record<string, Department[]> = {
   'character_development': ['story', 'character'],
@@ -180,8 +245,24 @@ function getDepartmentResponse(departments: Department[], message: string): stri
 }
 
 // Local intelligence engine - generates responses without external AI APIs
-function generateIntelligentResponse({ message, conversationHistory, userGoals, activeTopics, context, activeDepartments }: any): { response: string, departments: Department[] } {
+function generateIntelligentResponse({ message, conversationHistory, userGoals, activeTopics, context, activeDepartments }: any): { response: string, departments: Department[], handoff: Handoff | null } {
   const lowerMessage = message.toLowerCase();
+  
+  // Check for department handoff
+  const handoff = detectHandoff(message, activeDepartments);
+  if (handoff) {
+    const handoffResponses = [
+      `Got it, handing over to ${handoff.to}. What's the brief?`,
+      `${handoff.from} done. ${handoff.to} taking over - what do you need?`,
+      `Passing to ${handoff.to} now. Details?`,
+      `${handoff.to} is up. What should they work on?`
+    ];
+    return { 
+      response: handoffResponses[Math.floor(Math.random() * handoffResponses.length)],
+      departments: [handoff.to],
+      handoff
+    };
+  }
   
   // First check for multi-department collaboration patterns
   const collaboration = detectCollaboration(message);
@@ -198,7 +279,8 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
     const collabList = collaboration.map(d => deptNames[d]).join(', ');
     return { 
       response: `Coordinating ${collabList} departments for this. What's the vision?`,
-      departments: collaboration
+      departments: collaboration,
+      handoff: null
     };
   }
   
@@ -223,13 +305,13 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
       "Hey, how can I help?",
       "Hi! What do you need?"
     ];
-    return { response: greetings[Math.floor(Math.random() * greetings.length)], departments: [] };
+    return { response: greetings[Math.floor(Math.random() * greetings.length)], departments: [], handoff: null };
   }
   
   // If departments detected, route to those departments
   if (detectedDepartments.length > 0) {
     const deptResponse = getDepartmentResponse(detectedDepartments, message);
-    return { response: deptResponse, departments: detectedDepartments };
+    return { response: deptResponse, departments: detectedDepartments, handoff: null };
   }
   
   if (isRequest) {
@@ -237,14 +319,16 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
     if (lowerMessage.includes('video') || lowerMessage.includes('episode')) {
       return { 
         response: "Got it, full production. I'll coordinate all departments - story, characters, camera, audio, everything. What's it about?", 
-        departments: COLLABORATION_PATTERNS.full_production
+        departments: COLLABORATION_PATTERNS.full_production,
+        handoff: null
       };
     }
     
     // Generic creative request
     return { 
       response: "What do you want to create?", 
-      departments: []
+      departments: [],
+      handoff: null
     };
   }
   
@@ -253,7 +337,8 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
     if (lowerMessage.includes('what can') || lowerMessage.includes('what do')) {
       return { 
         response: "I run 7 departments: story/scripts, character design, music, camera work, dialogue/voice, editing, and marketing. They can work solo or collaborate. What do you need?", 
-        departments: []
+        departments: [],
+        handoff: null
       };
     }
     
@@ -261,7 +346,8 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
     if (lowerMessage.includes('how') || lowerMessage.includes('process')) {
       return { 
         response: "I coordinate departments based on what you need. Single task = one department. Complex work = multiple departments collaborate. Just tell me what you want.", 
-        departments: []
+        departments: [],
+        handoff: null
       };
     }
   }
@@ -271,7 +357,8 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
     if (isConfirmation) {
       return { 
         response: "Cool, starting now.", 
-        departments: activeDepartments || []
+        departments: activeDepartments || [],
+        handoff: null
       };
     }
     
@@ -279,13 +366,14 @@ function generateIntelligentResponse({ message, conversationHistory, userGoals, 
     if (!isGreeting && !isQuestion) {
       return { 
         response: `Got it. Anything else?`, 
-        departments: activeDepartments || []
+        departments: activeDepartments || [],
+        handoff: null
       };
     }
   }
   
   // Default intelligent response
-  return { response: "Okay, what else?", departments: activeDepartments || [] };
+  return { response: "Okay, what else?", departments: activeDepartments || [], handoff: null };
 }
 
 Deno.serve(async (req) => {
@@ -326,7 +414,7 @@ Deno.serve(async (req) => {
       console.log('🧠 Processing with local intelligence engine...');
       
       // Analyze user intent and generate intelligent response
-      const { response: aiMessage, departments: newDepartments } = generateIntelligentResponse({
+      const { response: aiMessage, departments: newDepartments, handoff } = generateIntelligentResponse({
         message,
         conversationHistory,
         userGoals,
@@ -401,6 +489,7 @@ Deno.serve(async (req) => {
           trackedGoals: newGoals,
           activeTopics: newTopics,
           activeDepartments: newDepartments,
+          handoff: handoff,
           message: newDepartments.length > 1 
             ? `⚡ God-Tier Orchestrator - Multi-Department Collaboration Active (${newDepartments.length} departments)`
             : '⚡ God-Tier Orchestrator - Smart Department Routing Active'
