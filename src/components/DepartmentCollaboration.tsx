@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Users, Music, Video, Mic, Scissors, TrendingUp, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DepartmentCollaborationProps {
   departments: string[];
@@ -56,7 +57,7 @@ const DEPARTMENT_CONFIG = {
   }
 };
 
-export const DepartmentCollaboration = ({ departments, handoff }: DepartmentCollaborationProps) => {
+const DepartmentCollaborationComponent = ({ departments, handoff }: DepartmentCollaborationProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [showHandoff, setShowHandoff] = useState(false);
 
@@ -80,66 +81,90 @@ export const DepartmentCollaboration = ({ departments, handoff }: DepartmentColl
   if (departments.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      {/* Active Departments */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-muted-foreground font-medium">
-          {departments.length === 1 ? 'Active:' : 'Collaborating:'}
-        </span>
-        {departments.map((dept, idx) => {
-          const config = DEPARTMENT_CONFIG[dept as keyof typeof DEPARTMENT_CONFIG];
-          if (!config) return null;
-          
-          const Icon = config.icon;
-          const isActive = departments.length > 1 && idx === activeIndex;
-          
-          return (
-            <Badge
-              key={dept}
-              variant="outline"
-              className={`
-                ${config.color} 
-                ${isActive ? config.glowColor : ''} 
-                transition-all duration-500 
-                ${isActive ? 'scale-110' : 'scale-100'}
-                animate-fade-in
-                flex items-center gap-1.5 px-3 py-1
-              `}
-              style={{
-                animationDelay: `${idx * 100}ms`
-              }}
-            >
-              <Icon className={`h-3.5 w-3.5 ${isActive ? 'animate-pulse' : ''}`} />
-              <span className="text-xs font-medium">{config.label}</span>
-            </Badge>
-          );
-        })}
-      </div>
-
-      {/* Handoff Notification */}
-      {showHandoff && handoff && (
-        <div className="animate-slide-in-right bg-muted/50 border border-border rounded-lg p-3 space-y-2">
-          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-            <span>Department Handoff</span>
-            <div className="flex items-center gap-1">
-              {DEPARTMENT_CONFIG[handoff.from as keyof typeof DEPARTMENT_CONFIG] && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                  {DEPARTMENT_CONFIG[handoff.from as keyof typeof DEPARTMENT_CONFIG].label}
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0, height: 0 }}
+        animate={{ opacity: 1, height: 'auto' }}
+        exit={{ opacity: 0, height: 0 }}
+        className="space-y-3"
+      >
+        {/* Active Departments */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs text-muted-foreground font-medium">
+            {departments.length === 1 ? 'Active:' : 'Collaborating:'}
+          </span>
+          {departments.map((dept, idx) => {
+            const config = DEPARTMENT_CONFIG[dept as keyof typeof DEPARTMENT_CONFIG];
+            if (!config) return null;
+            
+            const Icon = config.icon;
+            const isActive = departments.length > 1 && idx === activeIndex;
+            
+            return (
+              <motion.div
+                key={dept}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ delay: idx * 0.1 }}
+              >
+                <Badge
+                  variant="outline"
+                  className={`
+                    ${config.color} 
+                    ${isActive ? config.glowColor : ''} 
+                    transition-all duration-500 
+                    ${isActive ? 'scale-110' : 'scale-100'}
+                    flex items-center gap-1.5 px-3 py-1
+                  `}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'animate-pulse' : ''}`} />
+                  <span className="text-xs font-medium">{config.label}</span>
                 </Badge>
-              )}
-              <ArrowRight className="h-3 w-3" />
-              {DEPARTMENT_CONFIG[handoff.to as keyof typeof DEPARTMENT_CONFIG] && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
-                  {DEPARTMENT_CONFIG[handoff.to as keyof typeof DEPARTMENT_CONFIG].label}
-                </Badge>
-              )}
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground italic">
-            "{handoff.context}"
-          </p>
+              </motion.div>
+            );
+          })}
         </div>
-      )}
-    </div>
+
+        {/* Handoff Notification */}
+        <AnimatePresence>
+          {showHandoff && handoff && (
+            <motion.div
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
+              className="bg-muted/50 border border-border rounded-lg p-3 space-y-2"
+            >
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <span>Department Handoff</span>
+                <div className="flex items-center gap-1">
+                  {DEPARTMENT_CONFIG[handoff.from as keyof typeof DEPARTMENT_CONFIG] && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                      {DEPARTMENT_CONFIG[handoff.from as keyof typeof DEPARTMENT_CONFIG].label}
+                    </Badge>
+                  )}
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ repeat: Infinity, duration: 1.5 }}
+                  >
+                    <ArrowRight className="h-3 w-3" />
+                  </motion.div>
+                  {DEPARTMENT_CONFIG[handoff.to as keyof typeof DEPARTMENT_CONFIG] && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">
+                      {DEPARTMENT_CONFIG[handoff.to as keyof typeof DEPARTMENT_CONFIG].label}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground italic">
+                "{handoff.context}"
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </AnimatePresence>
   );
 };
+
+export const DepartmentCollaboration = memo(DepartmentCollaborationComponent);
